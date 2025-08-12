@@ -39,7 +39,7 @@ model Group {
 }
 
 model Record {
-  id            Int           @id @unique
+  id          Int       @id @default(autoincrement())
   type          ActivityType
   description   String?
   duration      Int
@@ -51,14 +51,12 @@ model Record {
   updateAt      DateTime      @updatedAt
   authorId      Int
   author        Participant   @relation(fields: [participantId], references: [id])
-  groupid       Int
-  group         Group         @relation(fields: [groupGroupId], references: [groupId])
-  participantId Int
-  groupGroupId  Int
+  groupId       Int
+  group         Group         @relation(fields: [groupId], references: [id])
 }
 
 model Photo {
-  id        Int      @id @unique
+  id          Int       @id @default(autoincrement())
   recordId  Int
   record    Record   @relation(fields: [recordId], references: [id])
   createdAt DateTime @default(now())
@@ -66,30 +64,26 @@ model Photo {
 }
 
 model Like {
-  id            Int         @id @unique
+  id        Int       @id @default(autoincrement())
   recordId      Int
   record        Record      @relation(fields: [recordId], references: [id])
   participantId Int
   participant   Participant @relation(fields: [participantId], references: [id])
+  @@unique([recordId, participantId])
 }
 
 model Tag {
-  id           Int           @id @unique
+  id          Int       @id @default(autoincrement())
   name         String        @unique
   activityTags ActivityTag[]
-  createdAt    DateTime      @default(now())
 }
 
 model ActivityTag {
-  id           Int     @id
-  tagid        Int
-  groupid      Int
-  group        Group   @relation(fields: [groupGroupId], references: [groupId])
-  tag          Tag     @relation(fields: [tagId], references: [id])
-  Record       Record? @relation(fields: [recordId], references: [id])
-  recordId     Int?
-  groupGroupId Int
+  groupId      Int
+  group        Group   @relation(fields: [groupId], references: [id])
   tagId        Int
+  tag          Tag     @relation(fields: [tagId], references: [id])
+  @@id([groupId, tagId])
 }
 
 model Participant {

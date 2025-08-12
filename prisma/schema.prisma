@@ -21,19 +21,19 @@ enum ActivityType {
 
 
 model Group {
-  groupId         Int    @id @default(autoincrement())
-  groupName       String
-  groupNickName   String
-  groupPassword   String
-  groupDesc       String
-  imgUrl          String
-  tags            String
-  tgetCount       Int
-  recomdCount     Int
-  badgeYn         Boolean
-  groupPoint      Int
-  dsCodeWebUrl    String
-  dsCodeSvrUrl    String
+  id              Int    @id @default(autoincrement())
+  name            String
+  nickname        String
+  password        String
+  description     String
+  imgurl          String
+  tag             String
+  tgetcount       Int
+  recomdcount     Int
+  badgeyn         Boolean
+  point           Int
+  discodewebUrl   String
+  discodesvrUrl   String
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
@@ -93,7 +93,7 @@ model ActivityTag {
 }
 
 model Participant {
-  id        Int      @id
+  groupId        Int      @id
   nickname  String
   password  String
   groupId   Int

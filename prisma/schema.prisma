@@ -19,81 +19,34 @@ enum ActivityType {
   SWIM
 }
 
+enum RankDuration {
+  MONTHLY
+  WEEKLY
+}
+
 model Group {
-  groupId      Int           @id
-  name      String
-  groupNickNm  String
-  groupPw      String
-  groupDesc    String
-  imgUrl       String
-  tags         String
-  tgetCnt      Int
-  recomdCnt    Int
-  badgeYn      String
-  dsCodeWebUrl String
-  dsCodeSvrUrl String
-  createdAt    DateTime      @default(now())
-  updateAt     DateTime      @updatedAt
-  Record       Record[]
-  ActivityTag  ActivityTag[]
-}
-
-model Record {
-  id            Int           @id @unique
-  type          ActivityType
-  description   String?
-  duration      Int
-  distance      Float
-  photos        Photo[]
-  like          Like[]
-  tags          ActivityTag[]
-  createdAt     DateTime      @default(now())
-  updateAt      DateTime      @updatedAt
-  authorId      Int
-  author        Participant   @relation(fields: [participantId], references: [id])
-  groupid       Int
-  group         Group         @relation(fields: [groupGroupId], references: [groupId])
-  participantId Int
-  groupGroupId  Int
-}
-
-model Photo {
-  id        Int      @id @unique
-  recordId  Int
-  record    Record   @relation(fields: [recordId], references: [id])
-  createdAt DateTime @default(now())
-  updateAt  DateTime @updatedAt
-}
-
-model Like {
-  id            Int         @id @unique
-  recordId      Int
-  record        Record      @relation(fields: [recordId], references: [id])
-  participantId Int
-  participant   Participant @relation(fields: [participantId], references: [id])
-}
-
-model Tag {
-  id           Int           @id @unique
-  name         String        @unique
-  activityTags ActivityTag[]
-  createdAt    DateTime      @default(now())
-}
-
-model ActivityTag {
-  id           Int     @id
-  tagid        Int
-  groupid      Int
-  group        Group   @relation(fields: [groupGroupId], references: [groupId])
-  tag          Tag     @relation(fields: [tagId], references: [id])
-  Record       Record? @relation(fields: [recordId], references: [id])
-  recordId     Int?
-  groupGroupId Int
-  tagId        Int
+  id              Int           @id @default(autoincrement())
+  name            String
+  nickname        String
+  password        String
+  description     String
+  imgUrl          String
+  tag             String
+  targetCount     Int
+  recommendCount  Int
+  badgeYn         Boolean
+  point           Int
+  discordWebUrl   String
+  discordServerUrl String
+  ranks           Rank[]
+  tags            ActivityTag[]
+  records         Record[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
 
 model Participant {
-  id        Int      @id
+  id        Int      @id @default(autoincrement())
   nickname  String
   password  String
   groupId   Int
@@ -101,4 +54,69 @@ model Participant {
   updateAt  DateTime @updatedAt
   Record    Record[]
   Like      Like[]
+  ranks Rank[]
+}
+
+model Record {
+id          Int           @id @default(autoincrement())
+  type        ActivityType
+  description String?
+  duration    Int
+  distance    Float
+  photos      Photo[]
+  likes       Like[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  authorId    Int
+  author      Participant   @relation(fields: [authorId], references: [id])
+  groupId     Int
+  group       Group         @relation(fields: [groupId], references: [id])
+}
+
+model Photo {
+  id        Int      @id @default(autoincrement())
+  recordId  Int
+  record    Record   @relation(fields: [recordId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Like {
+  id            Int         @id @default(autoincrement())
+  recordId      Int
+  record        Record      @relation(fields: [recordId], references: [id])
+  participantId Int
+  participant   Participant @relation(fields: [participantId], references: [id])
+
+  @@unique([recordId, participantId])
+}
+
+model Tag {
+  id            Int           @id @default(autoincrement())
+  name          String        @unique
+  activityTags  ActivityTag[]
+}
+
+model ActivityTag {
+  groupId      Int
+  group        Group   @relation(fields: [groupId], references: [id])
+  tagId        Int
+  tag          Tag     @relation(fields: [tagId], references: [id])
+  
+  @@id([groupId, tagId])
+}
+
+
+model Rank {
+  id           Int           @id @default(autoincrement())
+  groupId      Int
+  group        Group         @relation(fields: [groupId], references: [id])
+  participantId Int
+  participant  Participant   @relation(fields: [participantId], references: [id])
+  recordCount  Int
+  recordTime   Int
+  duration     RankDuration
+  createdAt    DateTime      @default(now())
+  
+  @@unique([groupId, participantId, duration])
 }

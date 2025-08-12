@@ -21,7 +21,7 @@ enum ActivityType {
 
 model Group {
   groupId      Int           @id
-  groupNm      String
+  name      String
   groupNickNm  String
   groupPw      String
   groupDesc    String

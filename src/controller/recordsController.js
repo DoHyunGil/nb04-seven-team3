@@ -89,7 +89,7 @@ class RecordsController {
 
       }else if(rank_type === "주간순"){
         const oneWeekAgo = new Date(now);
-        oneWeekAgo.setWeek(now.getWeek() - 7)
+        oneWeekAgo.setWeek(now.getDate() - 7)
         dateFilter = { recordDate : {gte : oneWeekAgo, lte : now}}
       }
       const rankList = await prisma.record.findMany({
@@ -97,7 +97,8 @@ class RecordsController {
         take: takeNumber,
         skip,
         where:{
-          duration: rank_type
+          duration: rank_type === "월간순" ? "MONTHLY" : "WEEKLY",
+          ...dateFilter
         },
         orderBy:{
           recordCount: "desc",
@@ -127,12 +128,12 @@ class RecordsController {
 
     if(typeof activityType !== "string" || typeof nickname !== "string" ) return res.status(400).json(error.message);
 
-    if(isNaN(groupId) || isNan(distanceNumber) || isNan(recordTimeNumber))return res.status(400).json(error.messsage);
+    if(isNaN(groupId) || isNaN(distanceNumber) || isNaN(recordTimeNumber))return res.status(400).json(error.messsage);
     
     try {
       const uniqueRecord = await prisma.record.findUnique({
         where:{
-          id: {groupId},
+          id: groupId,
         },
         select:{
           activityType: true,
@@ -148,7 +149,8 @@ class RecordsController {
         data : uniqueRecord
       });
     } catch (error) {
-      
+      console.error(error);
+      res.status(500).json(error.message);
     }
   }
 }

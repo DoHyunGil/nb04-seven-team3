@@ -4,8 +4,8 @@ import recordsController from "../controller/recordsController.js";
 const router = express.Router();
 
 const recordsController = new recordsController();
-router.get('/',recordsController.getRecordList)
-router.get('/',recordsController.getRankRecord)
-router.get('/:id', recordsController.getRecord)
+router.get('/records',recordsController.getRecordList)
+router.get('/records/rank',recordsController.getRankRecord)
+router.get('/:groupId/records', recordsController.getRecord)
 
 export default router;

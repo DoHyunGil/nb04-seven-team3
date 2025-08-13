@@ -61,7 +61,7 @@ class RecordsController {
   getWeekDateRange(year, month, weekOfMonth) {
     const firstOfmonth  = new Date(year,month  - 1, 1);
     const startDate = new Date(firstOfmonth)
-    startDate.setDate (1 +(  weekOfMonth  - 1)* 7)
+    startDate.setDate (1 +(  weekOfMonth  - 1) * 7)
     const endDate = new Date(startDate);
     endDate.setDate(startDate.getDate() + 6);
 
@@ -78,8 +78,9 @@ class RecordsController {
     // prunning 
     if (isNaN(pageNumber) || isNaN(takeNumber)) return res.status(400).json({error: "페이지네이션 요청 리퀘스트 오류"})
     if (skip < 0) return res.status(400).json({error : "페이지네이션 스킵값오류"})
-    if (!allowedRanks.includes(sort)) return res.status(400).json({error : "랭크 정렬 오류"})
-    try {
+    if (!allowedRanks.includes(rank_type)) return res.status(400).json({error : "랭크 정렬 오류"})
+    
+      try {
       const now = new Date();
       let  dateFilter = {};
       if (rank_type === "월간순"){

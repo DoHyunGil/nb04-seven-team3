@@ -25,24 +25,24 @@ enum RankDuration {
 }
 
 model Group {
-  id              Int           @id @default(autoincrement())
-  name            String
-  nickname        String
-  password        String
-  description     String
-  imgUrl          String
-  tag             String
-  targetCount     Int
-  recommendCount  Int
-  badgeYn         Boolean
-  point           Int
-  discordWebUrl   String
+  id               Int           @id @default(autoincrement())
+  name             String
+  nickname         String
+  password         String
+  description      String
+  imgUrl           String
+  tag              String
+  targetCount      Int
+  recommendCount   Int
+  badgeYn          Boolean
+  point            Int
+  discordWebUrl    String
   discordServerUrl String
-  ranks           Rank[]
-  tags            ActivityTag[]
-  records         Record[]
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  ranks            Rank[]
+  tags             ActivityTag[]
+  records          Record[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 }
 
 model Participant {
@@ -54,23 +54,23 @@ model Participant {
   updateAt  DateTime @updatedAt
   Record    Record[]
   Like      Like[]
-  ranks Rank[]
+  ranks     Rank[]
 }
 
 model Record {
-id          Int           @id @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   type        ActivityType
   description String?
   duration    Int
   distance    Float
   photos      Photo[]
   likes       Like[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   authorId    Int
-  author      Participant   @relation(fields: [authorId], references: [id])
+  author      Participant  @relation(fields: [authorId], references: [id])
   groupId     Int
-  group       Group         @relation(fields: [groupId], references: [id])
+  group       Group        @relation(fields: [groupId], references: [id])
 }
 
 model Photo {
@@ -92,31 +92,30 @@ model Like {
 }
 
 model Tag {
-  id            Int           @id @default(autoincrement())
-  name          String        @unique
-  activityTags  ActivityTag[]
+  id           Int           @id @default(autoincrement())
+  name         String        @unique
+  activityTags ActivityTag[]
 }
 
 model ActivityTag {
-  groupId      Int
-  group        Group   @relation(fields: [groupId], references: [id])
-  tagId        Int
-  tag          Tag     @relation(fields: [tagId], references: [id])
-  
+  groupId Int
+  group   Group @relation(fields: [groupId], references: [id])
+  tagId   Int
+  tag     Tag   @relation(fields: [tagId], references: [id])
+
   @@id([groupId, tagId])
 }
 
-
 model Rank {
-  id           Int           @id @default(autoincrement())
-  groupId      Int
-  group        Group         @relation(fields: [groupId], references: [id])
+  id            Int          @id @default(autoincrement())
+  groupId       Int
+  group         Group        @relation(fields: [groupId], references: [id])
   participantId Int
-  participant  Participant   @relation(fields: [participantId], references: [id])
-  recordCount  Int
-  recordTime   Int
-  duration     RankDuration
-  createdAt    DateTime      @default(now())
-  
+  participant   Participant  @relation(fields: [participantId], references: [id])
+  recordCount   Int
+  recordTime    Int
+  duration      RankDuration
+  createdAt     DateTime     @default(now())
+
   @@unique([groupId, participantId, duration])
 }

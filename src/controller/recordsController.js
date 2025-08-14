@@ -1,7 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { orderBy } from "lodash";
-import { endOfMonth, toDate } from "date-fns";
-import { type } from "node:os";
+import { endOfMonth} from "date-fns";
 const prisma = new PrismaClient();
 const allowedRanks = ["월간순", "주간순"];
 class RecordsController {
@@ -131,7 +129,7 @@ class RecordsController {
   }
 
   async getRecord(req, res, next) {
-    const groupId = req.params.groupId;
+    const groupId = Number(req.params.groupId);
     const {
       description,
       activityType,
@@ -146,10 +144,10 @@ class RecordsController {
 
     // validation
     if (typeof activityType !== "string" || typeof nickname !== "string")
-      return res.status(400).json(error.message);
+      return res.status(400).json({message: " 문자열 오류" });
 
     if (isNaN(groupId) || isNaN(distanceNumber) || isNaN(recordTimeNumber))
-      return res.status(400).json(error.messsage);
+      return res.status(400).json({message:"정수 확인"});
 
     try {
       const uniqueRecord = await prisma.record.findUnique({
@@ -176,4 +174,4 @@ class RecordsController {
   }
 }
 
-export default new RecordsController();
+export default RecordsController;// X new ()

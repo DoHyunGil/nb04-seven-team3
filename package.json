@@ -2,11 +2,7 @@
   "name": "www",
   "version": "0.1.0",
   "private": true,
-<<<<<<< HEAD
-  "type" :"module",
-=======
   "type": "module",
->>>>>>> remotes/origin/develop
   "scripts": {
     "dev": "concurrently \"npm run dev:next\" \"npm run dev:node\"",
     "dev:next": "next dev --turbopack",

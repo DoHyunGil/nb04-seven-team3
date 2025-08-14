@@ -2,7 +2,11 @@
   "name": "www",
   "version": "0.1.0",
   "private": true,
+<<<<<<< HEAD
   "type" :"module",
+=======
+  "type": "module",
+>>>>>>> remotes/origin/develop
   "scripts": {
     "dev": "concurrently \"npm run dev:next\" \"npm run dev:node\"",
     "dev:next": "next dev --turbopack",
@@ -15,7 +19,11 @@
     "@prisma/client": "^6.12.0",
     "axios": "^1.7.9",
     "classnames": "^2.5.1",
+<<<<<<< HEAD
     "date-fns": "^4.1.0",
+=======
+    "express": "^5.1.0",
+>>>>>>> remotes/origin/develop
     "lodash": "^4.17.21",
     "next": "15.1.3",
     "react": "^19.0.0",

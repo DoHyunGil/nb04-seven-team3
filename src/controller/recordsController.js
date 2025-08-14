@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { endOfMonth} from "date-fns";
+import { group } from "console";
+import { endOfMonth } from "date-fns";
 const prisma = new PrismaClient();
 const allowedRanks = ["월간순", "주간순"];
 class RecordsController {
@@ -40,15 +41,12 @@ class RecordsController {
         },
 
         //운동 시간 많은 순, 최신순으로 정렬
-        orderBy: [
-          { updatedAt: "desc" },
-          { duration: "desc" },
-      ]
+        orderBy: [{ updatedAt: "desc" }, { duration: "desc" }],
       });
       return res.status(200).json({
         message: "해당 리스트 조회 성공",
-        data: [ ...recordList ],
-    });
+        data: [...recordList],
+      });
     } catch (error) {
       console.error(error);
       res.status(500).json(error.message);
@@ -56,21 +54,19 @@ class RecordsController {
   }
 
   getPreviousWeekRange() {
-   
-    const firstOfMonth = new Date(year, month - 1, 1)
+    const firstOfMonth = new Date(year, month - 1, 1);
     return {
-      start : startOfWeek(subWeeks(firstOfMonth, 1),{weekStartsOn : 1 }),
-      end : endOfWeek(subWeeks(firstOfMonth, 1), {weekStartsOn : 1 } )
-    }
+      start: startOfWeek(subWeeks(firstOfMonth, 1), { weekStartsOn: 1 }),
+      end: endOfWeek(subWeeks(firstOfMonth, 1), { weekStartsOn: 1 }),
+    };
   }
 
-
-  getCurrentMonthRange(){
+  getCurrentMonthRange() {
     const now = new Date();
-    return{
+    return {
       start: startOfMonth(now),
-      end : endOfMonth(now)
-    }
+      end: endOfMonth(now),
+    };
   }
   async getRankRecord(req, res, next) {
     // pagination
@@ -78,13 +74,15 @@ class RecordsController {
     const pageNumber = Number(page) || 1;
     const takeNumber = Number(take) || 10;
     const skip = (pageNumber - 1) * takeNumber;
-    
+
     // sort for weekly or monthly
-    let start, end ;
-    if (rank_type === "월간순"){({start, end} = this.getCurrentMonthRange())}
-    else if(rank_type ==="주간순") {({start, end } = this.getPreviousWeekRange())}
-    
-    
+    let start, end;
+    if (rank_type === "월간순") {
+      ({ start, end } = this.getCurrentMonthRange());
+    } else if (rank_type === "주간순") {
+      ({ start, end } = this.getPreviousWeekRange());
+    }
+
     // prunning
     if (isNaN(pageNumber) || isNaN(takeNumber))
       return res.status(400).json({ error: "페이지네이션 요청 리퀘스트 오류" });
@@ -92,23 +90,25 @@ class RecordsController {
       return res.status(400).json({ error: "페이지네이션 스킵값오류" });
     if (!allowedRanks.includes(rank_type) && typeof rank_type !== "string")
       return res.status(400).json({ error: "랭크 정렬 오류" });
-    
+
     const dateFilter = {
-        recordDate : {
-          gte : start,
-          lte : end
-        }
-    }
+      recordDate: {
+        gte: start,
+        lte: end,
+      },
+    };
     const whereCondition = {
-        ...dateFilter,
-        ...(nickname ? { nickname: { contains: nickname, mode: "insensitive" } }:{})
-    }
+      ...dateFilter,
+      ...(nickname
+        ? { nickname: { contains: nickname, mode: "insensitive" } }
+        : {}),
+    };
     try {
       const rankList = await prisma.record.findMany({
         take: takeNumber,
         skip,
         where: {
-          whereCondition
+          whereCondition,
         },
         orderBy: {
           recordCount: "desc",
@@ -144,10 +144,16 @@ class RecordsController {
 
     // validation
     if (typeof activityType !== "string" || typeof nickname !== "string")
-      return res.status(400).json({message: " 문자열 오류" });
+      return res.status(400).json({ message: " 문자열 오류" });
 
-    if (isNaN(groupId) || isNaN(distanceNumber) || isNaN(recordTimeNumber))
-      return res.status(400).json({message:"정수 확인"});
+    if (isNaN(groupId))
+      return res.status(400).json({
+        path: "groupId",
+        message: " GroupId 는 정수 여야합니다",
+      });
+
+    if (isNaN(distanceNumber) || isNaN(recordTimeNumber))
+      return res.status(400).json({ message: "정수 확인" });
 
     try {
       const uniqueRecord = await prisma.record.findUnique({
@@ -174,4 +180,4 @@ class RecordsController {
   }
 }
 
-export default RecordsController;// X new ()
+export default RecordsController; // X new ()

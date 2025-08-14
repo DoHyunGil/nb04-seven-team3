@@ -30,16 +30,16 @@ router.get('/groups', async (req, res) => {
       take: limitNum,
       orderBy:
         orderBy === 'participantCount'
-          ? { participant: { _count: order } }
+          ? { Participant: { _count: order } }
           : { [orderBy]: order },
       select: {
         name: true,
         nickname: true,
-        imgurl: true,
+        imgUrl: true,
         tag: true,
-        tgetcount: true,
-        recomdcount: true,
-        _count: { select: { participant: true } },
+        targetCount: true,
+        recommendCount: true,
+        _count: { select: { Participant: true } },
       },
     });
     res.json(groups);
@@ -60,18 +60,18 @@ router.get('/groups/:groupId', async (req, res) => {
         name: true,
         description: true,
         nickname: true,
-        imgurl: true,
+        imgUrl: true,
         tag: true,
-        tgetcount: true,
-        _count: { select: { participant: true } },
-        discodesvrUrl: true,
+        targetCount: true,
+        _count: { select: { Participant: true } },
+        discordServerUrl: true,
       },
     });
     const { _count, ...rest } = group;
 
     res.status(200).json({
       ...rest,
-      participantCount: _count.participant,
+      participantCount: _count.Participant,
     });
   } catch (error) {
     res.status(500).json({ error: '서버 오류' });

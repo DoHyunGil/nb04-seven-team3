@@ -1,20 +1,18 @@
 import { PrismaClient } from "@prisma/client";
 import { group } from "console";
 import { endOfMonth } from "date-fns";
+import { setRequestMeta } from "next/dist/server/request-meta";
 const prisma = new PrismaClient();
 const allowedRanks = ["월간순", "주간순"];
 class RecordsController {
   async getRecordList(req, res, next) {
-    const { nickname } = req.query;
+    const { nickname, page, take, sortType } = req.query;
 
     // pagenation
-    const { page, take, sort } = req.query;
 
     const pageNumber = Number(page) || 1;
     const takeNumber = Number(take) || 10;
     const skip = (pageNumber - 1) * takeNumber;
-    // 정렬
-    const sortType = ["최신순", "운동시간순"];
 
     // 가지치기
     if (skip < 0)
@@ -22,7 +20,11 @@ class RecordsController {
 
     if (!sortType.includes(sort))
       return res.status(400).json({ error: "정렬 기능 범위 확인 " });
-
+    const sortMap = {
+      최신순: { createdAt: "desc" },
+      "운동 시간순": { duration: "desc" },
+    };
+    const orderBy = sortMap[sortType] || { createdAt: "desc" };
     try {
       const recordList = await prisma.record.findMany({
         where: nickname
@@ -41,7 +43,7 @@ class RecordsController {
         },
 
         //운동 시간 많은 순, 최신순으로 정렬
-        orderBy: [{ updatedAt: "desc" }, { duration: "desc" }],
+        orderBy: orderBy,
       });
       return res.status(200).json({
         message: "해당 리스트 조회 성공",

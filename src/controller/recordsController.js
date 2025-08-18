@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 const allowedRanks = ["월간순", "주간순"];
 const tempRecords= [];
 class RecordsController {
+  
   async getRecordList(req, res, next) {
     const { nickname, page, take, sortType } = req.query;
 
@@ -79,7 +80,7 @@ class RecordsController {
   }
   async getRankRecords(req, res, next) {
     // pagination
-    const { page, take, sort: rank_type, nickname } = req.query;
+    const { page, take, sort: rank_type, nickname } = req.query || {};
     const pageNumber = Number(page) || 1;
     const takeNumber = Number(take) || 10;
     const skip = (pageNumber - 1) * takeNumber;
@@ -136,7 +137,7 @@ class RecordsController {
   }
   
   async getRecord(req, res, next) {
-    const groupId = Number(req.params.groupId);
+    const groupId = Number(req.params.groupId) || {};
     const {
       description,
       activityType,
@@ -144,7 +145,7 @@ class RecordsController {
       nickname,
       recordTime,
       photos,
-    } = req.query;
+    } = req.query || {};
 
     const distanceNumber = Number(distance);
     const recordTimeNumber = Number(recordTime);
@@ -186,7 +187,8 @@ class RecordsController {
     }
   }
   async createRecord(req, res) {
-    const { groupId } = req.params;
+    
+    const { groupId } = req.params || {}
     const {
       ActivityType: activityTypeStr,
       description,
@@ -197,13 +199,18 @@ class RecordsController {
       authorPassword,
     } = req.body;
 
+    const group = { id: Number(groupId), name: "Test Group" };
+    const participant = { id: 1, nickname: authorNickname };
+    const photosArray = Array.isArray(photos) ? photos : [];
     const record = {
-      id : tempRecords.legnth + 1,
+      id : tempRecords.length + 1,
       groupId,
       ...req.body
     }
     tempRecords.push(record)
 
+
+    
     // groupId 검증
     if (!Number.isInteger(Number(groupId))) {
       return res.status(400).json({
@@ -235,7 +242,19 @@ class RecordsController {
     if (!activityTypeEnum) {
       return res.status(400).json({ error: "Invalid ActivityType" });
     }
-    
+     const newRecord = {
+      id: tempRecords.length + 1,
+      groupId: group.id,
+      type: activityTypeEnum,
+      description,
+      duration: time,
+      distance,
+      photos: photosArray.map((url) => ({ photos: [url] })),
+      author: participant,
+    };
+
+    tempRecords.push(newRecord);
+
     try {
       // 그룹 존재 여부 확인
       const group = await prisma.group.findUnique({
@@ -254,10 +273,6 @@ class RecordsController {
           .status(401)
           .json({ error: "참여자가 존재하지 않거나 인증에 실패했습니다." });
       }
-
-      // 사진 배열 변환
-      const photosArray = Array.isArray(photos) ? photos : [];
-
       // Record 생성
       const newRecord = await prisma.record.create({
         data: {
@@ -299,4 +314,4 @@ class RecordsController {
     }
   }
 }
-export default RecordsController; // X new ()
+export default RecordsController; // X new () 

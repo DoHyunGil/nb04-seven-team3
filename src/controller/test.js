@@ -3,8 +3,9 @@ import RecordsController from "./recordsController.js";
 const controller = new RecordsController();
 
 
+
 const fakeReq = {
-  params: { groupId: 1 },
+  params: { groupId:  1},
   body: {
     ActivityType: "run",
     description: "테스트 조깅",

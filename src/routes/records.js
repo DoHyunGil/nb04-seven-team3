@@ -5,7 +5,7 @@ const router = express.Router();
 
 const record = new recordsController();
 router.get('/:groupId/records',record.getRecordList)
-router.get('/records/rank',record.getRankRecord)
+router.get('/records/rank',record.getRankRecords)
 router.get('/:groupId/records', record.getRecord)
 
 export default router;

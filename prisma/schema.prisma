@@ -26,9 +26,7 @@ enum RankDuration {
 
 model Group {
   id                Int                @id @default(autoincrement())
-  name              String
-  nickname          String
-  password          String
+  name              String             @unique
   description       String
   photoUrl          String
   goalRep           Int
@@ -49,12 +47,12 @@ model Group {
 
 model Participant {
   id                Int                @id @default(autoincrement())
-  nickname          String
+  nickname          String             @unique
   password          String
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
-  Record            Record[]
-  Like              Like[]
+  record            Record[]
+  like              Like[]
   ranks             Rank[]
   ownedGroups       Group[]            @relation("GroupOwner")
   groupParticipants GroupParticipant[]

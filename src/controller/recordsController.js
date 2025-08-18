@@ -3,7 +3,7 @@ import { PrismaClient, ActivityType } from "@prisma/client";
 const prisma = new PrismaClient();
 
 class RecordsController {
-  async createRecord(req, res) {
+  createRecord = async (req, res) => {
     const { groupId } = req.params;
     const {
       ActivityType: activityTypeStr,

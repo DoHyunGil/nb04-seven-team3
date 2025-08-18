@@ -1,7 +1,9 @@
-import { PrismaClient } from "@prisma/client";
-import { endOfMonth , startOfWeek, endOfWeek,startOfMonth, subWeeks } from "date-fns";
+import { PrismaClient, ActivityType } from "@prisma/client";
+
+
 const prisma = new PrismaClient();
 const allowedRanks = ["월간순", "주간순"];
+const tempRecords= [];
 class RecordsController {
   async getRecordList(req, res, next) {
     const { nickname, page, take, sortType } = req.query;
@@ -11,6 +13,7 @@ class RecordsController {
     const takeNumber = Number(take) || 10;
     const skip = (pageNumber - 1) * takeNumber;
     const groupId = Number(req.params.groupId)
+
     // 가지치기
     if (skip < 0)
       return res.status(400).json({ error: "skip은 음수가 되면 안됩니다" });
@@ -19,10 +22,11 @@ class RecordsController {
       "최신순" : { createdAt: "desc" },
       "운동 시간순": { duration: "desc" },
     };
+    
     try {
       const recordList = await prisma.record.findMany({
         where: {
-          id : groupId,
+          groupId,
           ...(nickname
           ? { nickname: { contains: nickname, mode: "insensitive" } }
           : {} // nickname 으로 조회 가능
@@ -42,14 +46,8 @@ class RecordsController {
         },
 
         //운동 시간 많은 순, 최신순으로 정렬
-        orderBy: [
-          {
-            "최신순" : { createdAt : "desc" }
-          },
-          {
-            "운동시간 많은 순" :{ duration :" desc"}
-          }
-        ]
+        orderBy: sortMap[sortType] ? [sortMap[sortType]] : [],
+
       });
 
       if(recordList.length === 0) return res.status(200).json([])
@@ -61,6 +59,7 @@ class RecordsController {
       console.error(error);
       res.status(500).json(error.message);
     }
+    
   }
 
   getPreviousWeekRange(year, month) {
@@ -78,7 +77,7 @@ class RecordsController {
       end: endOfMonth(now),
     };
   }
-  async getRankRecord(req, res, next) {
+  async getRankRecords(req, res, next) {
     // pagination
     const { page, take, sort: rank_type, nickname } = req.query;
     const pageNumber = Number(page) || 1;
@@ -100,7 +99,6 @@ class RecordsController {
       return res.status(400).json({ error: "페이지네이션 스킵값오류" });
     if (!allowedRanks.includes(rank_type) && typeof rank_type !== "string")
       return res.status(400).json({ error: "랭크 정렬 오류" });
-
     const dateFilter = {
       recordDate: {
         gte: start,
@@ -113,13 +111,12 @@ class RecordsController {
         ? { nickname: { contains: nickname, mode: "insensitive" } }
         : {}),
     };
+    
     try {
       const rankList = await prisma.record.findMany({
         take: takeNumber,
         skip,
-        where: {
-          whereCondition,
-        },
+        where: whereCondition,
         orderBy: {
           recordCount: "desc",
         },
@@ -137,7 +134,7 @@ class RecordsController {
       res.status(500).json(error.message);
     }
   }
-
+  
   async getRecord(req, res, next) {
     const groupId = Number(req.params.groupId);
     const {
@@ -188,6 +185,118 @@ class RecordsController {
       res.status(500).json(error.message);
     }
   }
-}
+  async createRecord(req, res) {
+    const { groupId } = req.params;
+    const {
+      ActivityType: activityTypeStr,
+      description,
+      time,
+      distance,
+      photos,
+      authorNickname,
+      authorPassword,
+    } = req.body;
 
+    const record = {
+      id : tempRecords.legnth + 1,
+      groupId,
+      ...req.body
+    }
+    tempRecords.push(record)
+
+    // groupId 검증
+    if (!Number.isInteger(Number(groupId))) {
+      return res.status(400).json({
+        path: "groupId",
+        message: "groupId must be integer",
+      });
+    }
+
+    //  필수 값 검증
+    if (
+      !activityTypeStr ||
+      !description ||
+      time == null ||
+      distance == null ||
+      !authorNickname ||
+      !authorPassword
+    ) {
+      return res.status(400).json({ error: "필수 작성 내용이 누락되었습니다." });
+    }
+
+    // ActivityType 매핑
+    const typeMap = {
+      run: ActivityType.RUN,
+      bike: ActivityType.BIKE,
+      swim: ActivityType.SWIM,
+    };
+
+    const activityTypeEnum = typeMap[activityTypeStr.toLowerCase()];
+    if (!activityTypeEnum) {
+      return res.status(400).json({ error: "Invalid ActivityType" });
+    }
+    
+    try {
+      // 그룹 존재 여부 확인
+      const group = await prisma.group.findUnique({
+        where: { id: Number(groupId) },
+      });
+      if (!group) {
+        return res.status(404).json({ error: "그룹이 존재하지 않습니다." });
+      }
+
+      // 참여자 인증
+      const participant = await prisma.participant.findUnique({
+        where: { nickname: authorNickname },
+      });
+      if (!participant || participant.password !== authorPassword) {
+        return res
+          .status(401)
+          .json({ error: "참여자가 존재하지 않거나 인증에 실패했습니다." });
+      }
+
+      // 사진 배열 변환
+      const photosArray = Array.isArray(photos) ? photos : [];
+
+      // Record 생성
+      const newRecord = await prisma.record.create({
+        data: {
+          type: activityTypeEnum,
+          description,
+          duration: time,
+          distance,
+          authorId: participant.id,
+          groupId: Number(groupId),
+          photos: {
+            create: photosArray.map((url) => ({
+              photos: [url],
+            })),
+          },
+        },
+        include: {
+          photos: true,
+          author: true,
+        },
+      });
+
+      // 응답 데이터 변환
+      const photoUrls = newRecord.photos.flatMap((p) => p.photos);
+      console.log(res.data);
+      return res.status(201).json({
+        id: newRecord.id,
+        description: newRecord.description,
+        time: newRecord.duration,
+        distance: newRecord.distance,
+        photos: photoUrls,
+        author: {
+          id: newRecord.author.id,
+          nickname: newRecord.author.nickname,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+}
 export default RecordsController; // X new ()

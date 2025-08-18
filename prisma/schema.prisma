@@ -25,36 +25,48 @@ enum RankDuration {
 }
 
 model Group {
-  id               Int           @id @default(autoincrement())
-  name             String
-  nickname         String
-  password         String
-  description      String
-  imgUrl           String
-  tag              String
-  targetCount      Int
-  recommendCount   Int
-  badgeYn          Boolean
-  point            Int
-  discordWebUrl    String
-  discordServerUrl String
-  ranks            Rank[]
-  tags             ActivityTag[]
-  records          Record[]
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  id                Int                @id @default(autoincrement())
+  name              String
+  nickname          String
+  password          String
+  description       String
+  photoUrl          String
+  goalRep           Int
+  recommendCount    Int
+  badgeYn           Boolean
+  point             Int
+  discordWebhookUrl String
+  discordInviteUrl  String
+  ownerId           Int
+  owner             Participant        @relation("GroupOwner", fields: [ownerId], references: [id])
+  groupParticipants GroupParticipant[]
+  ranks             Rank[]
+  tags              ActivityTag[]
+  records           Record[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 }
 
 model Participant {
-  id        Int      @id @default(autoincrement())
-  nickname  String
-  password  String
-  groupId   Int
-  createdAt DateTime @default(now())
-  updateAt  DateTime @updatedAt
-  Record    Record[]
-  Like      Like[]
-  ranks     Rank[]
+  id                Int                @id @default(autoincrement())
+  nickname          String
+  password          String
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  Record            Record[]
+  Like              Like[]
+  ranks             Rank[]
+  ownedGroups       Group[]            @relation("GroupOwner")
+  groupParticipants GroupParticipant[]
+}
+
+model GroupParticipant {
+  groupId       Int
+  participantId Int
+  group         Group       @relation(fields: [groupId], references: [id])
+  participant   Participant @relation(fields: [participantId], references: [id])
+
+  @@id([groupId, participantId])
 }
 
 model Record {
@@ -75,6 +87,7 @@ model Record {
 
 model Photo {
   id        Int      @id @default(autoincrement())
+  url       String
   recordId  Int
   record    Record   @relation(fields: [recordId], references: [id])
   createdAt DateTime @default(now())

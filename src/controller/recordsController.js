@@ -1,7 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { group } from "console";
-import { endOfMonth } from "date-fns";
-import { setRequestMeta } from "next/dist/server/request-meta";
+import { endOfMonth , startOfWeek, endOfWeek,startOfMonth, subWeeks } from "date-fns";
 const prisma = new PrismaClient();
 const allowedRanks = ["월간순", "주간순"];
 class RecordsController {
@@ -9,29 +7,30 @@ class RecordsController {
     const { nickname, page, take, sortType } = req.query;
 
     // pagenation
-
     const pageNumber = Number(page) || 1;
     const takeNumber = Number(take) || 10;
     const skip = (pageNumber - 1) * takeNumber;
-
+    const groupId = Number(req.params.groupId)
     // 가지치기
     if (skip < 0)
       return res.status(400).json({ error: "skip은 음수가 되면 안됩니다" });
 
-    if (!sortType.includes(sort))
-      return res.status(400).json({ error: "정렬 기능 범위 확인 " });
     const sortMap = {
-      최신순: { createdAt: "desc" },
+      "최신순" : { createdAt: "desc" },
       "운동 시간순": { duration: "desc" },
     };
-    const orderBy = sortMap[sortType] || { createdAt: "desc" };
     try {
       const recordList = await prisma.record.findMany({
-        where: nickname
+        where: {
+          id : groupId,
+          ...(nickname
           ? { nickname: { contains: nickname, mode: "insensitive" } }
-          : {}, // nickname 으로 조회 가능
+          : {} // nickname 으로 조회 가능
+          )
+        },
         take: takeNumber,
         skip,
+        
 
         select: {
           // 닉네임, 거리, 운동시간, 운동 종류, 사진 표시
@@ -43,11 +42,20 @@ class RecordsController {
         },
 
         //운동 시간 많은 순, 최신순으로 정렬
-        orderBy: orderBy,
+        orderBy: [
+          {
+            "최신순" : { createdAt : "desc" }
+          },
+          {
+            "운동시간 많은 순" :{ duration :" desc"}
+          }
+        ]
       });
+
+      if(recordList.length === 0) return res.status(200).json([])
       return res.status(200).json({
         message: "해당 리스트 조회 성공",
-        data: [...recordList],
+        data: recordList
       });
     } catch (error) {
       console.error(error);
@@ -55,7 +63,7 @@ class RecordsController {
     }
   }
 
-  getPreviousWeekRange() {
+  getPreviousWeekRange(year, month) {
     const firstOfMonth = new Date(year, month - 1, 1);
     return {
       start: startOfWeek(subWeeks(firstOfMonth, 1), { weekStartsOn: 1 }),
@@ -158,7 +166,7 @@ class RecordsController {
       return res.status(400).json({ message: "정수 확인" });
 
     try {
-      const uniqueRecord = await prisma.record.findUnique({
+      const record = await prisma.record.findUnique({
         where: {
           id: groupId,
         },
@@ -173,7 +181,7 @@ class RecordsController {
       });
       res.status(200).json({
         message: "해당 그룹의 운동기록 조회 성공",
-        data: uniqueRecord,
+        data: record,
       });
     } catch (error) {
       console.error(error);

@@ -43,9 +43,7 @@ class GroupsContriller {
             
         } catch(error) {
             console.log(error);
-            res.status(401).json( { error: '그룹등록에 실패했습니다!'} );
-        } finally {
-            await prisma.$disconnect();
+            res.status(400).json( { error: '그룹등록에 실패했습니다!'} );
         }
   };
 
@@ -67,9 +65,7 @@ class GroupsContriller {
             
         } catch(error) {
             console.log(error);
-            res.status(401).json( { error: '그룹수정에 실패했습니다!'} );
-        } finally {
-            await prisma.$disconnect();
+            res.status(400).json( { error: '그룹수정에 실패했습니다!'} );
         }
    };
 
@@ -89,9 +85,7 @@ class GroupsContriller {
             
         } catch(error) {
             console.log(error);
-            res.status(401).json( { error: '그룹삭제에 실패했습니다!'} );
-        } finally {
-            await prisma.$disconnect();
+            res.status(400).json( { error: '그룹삭제에 실패했습니다!'} );
         }
    };
 

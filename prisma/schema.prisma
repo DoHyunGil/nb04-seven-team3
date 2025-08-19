@@ -1,27 +1,10 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
 generator client {
   provider = "prisma-client-js"
 }
 
-enum ActivityType {
-  RUN
-  BIKE
-  SWIM
-}
-
-enum RankDuration {
-  MONTHLY
-  WEEKLY
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Group {
@@ -38,11 +21,11 @@ model Group {
   point            Int
   discordWebUrl    String
   discordServerUrl String
-  ranks            Rank[]
-  tags             ActivityTag[]
-  records          Record[]
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
+  tags             ActivityTag[]
+  ranks            Rank[]
+  records          Record[]
 }
 
 model Participant {
@@ -52,9 +35,9 @@ model Participant {
   groupId   Int
   createdAt DateTime @default(now())
   updateAt  DateTime @updatedAt
-  Record    Record[]
   Like      Like[]
   ranks     Rank[]
+  Record    Record[]
 }
 
 model Record {
@@ -63,30 +46,30 @@ model Record {
   description String?
   duration    Int
   distance    Float
-  photos      Photo[]
-  likes       Like[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   authorId    Int
-  author      Participant  @relation(fields: [authorId], references: [id])
   groupId     Int
+  likes       Like[]
+  photos      Photo[]
+  author      Participant  @relation(fields: [authorId], references: [id])
   group       Group        @relation(fields: [groupId], references: [id])
 }
 
 model Photo {
   id        Int      @id @default(autoincrement())
   recordId  Int
-  record    Record   @relation(fields: [recordId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  record    Record   @relation(fields: [recordId], references: [id])
 }
 
 model Like {
   id            Int         @id @default(autoincrement())
   recordId      Int
-  record        Record      @relation(fields: [recordId], references: [id])
   participantId Int
   participant   Participant @relation(fields: [participantId], references: [id])
+  record        Record      @relation(fields: [recordId], references: [id])
 
   @@unique([recordId, participantId])
 }
@@ -99,8 +82,8 @@ model Tag {
 
 model ActivityTag {
   groupId Int
-  group   Group @relation(fields: [groupId], references: [id])
   tagId   Int
+  group   Group @relation(fields: [groupId], references: [id])
   tag     Tag   @relation(fields: [tagId], references: [id])
 
   @@id([groupId, tagId])
@@ -109,13 +92,24 @@ model ActivityTag {
 model Rank {
   id            Int          @id @default(autoincrement())
   groupId       Int
-  group         Group        @relation(fields: [groupId], references: [id])
   participantId Int
-  participant   Participant  @relation(fields: [participantId], references: [id])
   recordCount   Int
   recordTime    Int
   duration      RankDuration
   createdAt     DateTime     @default(now())
+  group         Group        @relation(fields: [groupId], references: [id])
+  participant   Participant  @relation(fields: [participantId], references: [id])
 
   @@unique([groupId, participantId, duration])
+}
+
+enum ActivityType {
+  RUN
+  BIKE
+  SWIM
+}
+
+enum RankDuration {
+  MONTHLY
+  WEEKLY
 }

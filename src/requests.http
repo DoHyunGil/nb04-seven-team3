@@ -1,0 +1,66 @@
+
+# 조회 테스트 
+# GET http://localhost:3000/groups
+
+# 등록 테스트
+# POST http://localhost:3000/groups
+# Content-Type: application/json
+
+# {
+#    "name": "등록테스트",
+#    "nickname": "테스트님",
+#    "password": "1234",
+#    "description": "테스트용",
+#    "imgUrl": "www.immage.com",
+#    "tag": "10번째테스트",
+#    "targetCount": 0,
+#    "recommendCount": 0,
+#    "badgeYn": false,
+#    "point": 0,
+#    "discordWebUrl": "www.web.co.kr",
+#    "discordServerUrl": "www.discord.com"
+# }
+
+
+# 수정 테스트
+# PATCH   http://localhost:3000/groups/11
+# Content-Type: application/json
+
+# {
+#    "name": "등록테스트(수정)",
+#    "nickname": "테스트님(수정)",
+#    "password": "1234(수정)",
+#    "description": "테스트용(수정)",
+#    "imgUrl": "www.immage.com(수정)",
+#    "tag": "10번째테스트(수정)",
+#    "discordWebUrl": "www.web.co.kr",
+#    "discordServerUrl": "www.discord.com"
+# }
+
+# 삭제 테스트
+DELETE   http://localhost:3000/groups/11
+Content-Type: application/json
+
+
+
+# 상세조회 테스트 
+# GET http://localhost:3000/groups/8
+
+
+# curl -X POST -H "Content-Type: application/json" -d '{   "name": "등록테스트",
+#    "nickname": "테스트님",
+#    "password": "1234",
+#    "description": "테스트용",
+#    "imgUrl": "www.immage.com",
+#    "tag": "세번째테스트",
+#    "targetCount": 0,
+#    "recommendCount": 0,
+#    "badgeYn": false,
+#    "point": 0,
+#    "discordWebUrl": "www.web.co.kr",
+#    "discordServerUrl": "www.discord.com"
+# }' http://localhost:3000/group
+
+
+
+

@@ -7,6 +7,7 @@ const PORT = process.env.PORT || 4000;
 app.use(express.json());
 
 app.use('/groups', groupRouters);
+app.use('/groups', recordsRouter);
 
 app.listen(PORT, () => {
   console.log('server running');

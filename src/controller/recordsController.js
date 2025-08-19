@@ -1,11 +1,8 @@
 import { PrismaClient, ActivityType } from "@prisma/client";
 
-
-
 const prisma = new PrismaClient();
 const allowedRanks = ["월간순", "주간순"];
 class RecordsController {
-  
   async getRecordList(req, res, next) {
     const { nickname, page, take, sortType } = req.query;
 
@@ -13,33 +10,39 @@ class RecordsController {
     const pageNumber = Number(page) || 1;
     const takeNumber = Number(take) || 10;
     const skip = (pageNumber - 1) * takeNumber;
-    const groupId = Number(req.params.groupId)
-  
-    console.log(typeof pageNumber, typeof takeNumber, typeof skip, typeof groupId)  ;
-    console.log("요청된 파라미터: ", req.params)
+    const groupId = Number(req.params.groupId);
+
+    console.log(
+      typeof pageNumber,
+      typeof takeNumber,
+      typeof skip,
+      typeof groupId
+    );
+    console.log("요청된 파라미터: ", req.params);
     // 가지치기
     if (skip < 0)
       return res.status(400).json({ error: "skip은 음수가 되면 안됩니다" });
 
     const sortMap = {
-      "최신순" : { createdAt: "desc" },
+      최신순: { createdAt: "desc" },
       "운동 시간순": { duration: "desc" },
     };
-    
+
     try {
-      const uniqueGroup = await prisma.record.findUnique({where: {id:groupId}})
-      if (! uniqueGroup ) return res.status(400).json({error: "그룹 존재 유무 확인"})
+      const uniqueGroup = await prisma.record.findUnique({
+        where: { id: groupId },
+      });
+      if (!uniqueGroup)
+        return res.status(400).json({ error: "그룹 존재 유무 확인" });
       const recordList = await prisma.record.findMany({
         where: {
           groupId,
           ...(nickname
-          ? { nickname: { contains: nickname, mode: "insensitive" } }
-          : {} // nickname 으로 조회 가능
-          )
+            ? { nickname: { contains: nickname, mode: "insensitive" } }
+            : {}), // nickname 으로 조회 가능
         },
         take: takeNumber,
         skip,
-        
 
         select: {
           // 닉네임, 거리, 운동시간, 운동 종류, 사진 표시
@@ -52,19 +55,17 @@ class RecordsController {
 
         //운동 시간 많은 순, 최신순으로 정렬
         orderBy: sortMap[sortType] ? [sortMap[sortType]] : [],
-
       });
 
-      if(recordList.length === 0) return res.status(200).json([])
+      if (recordList.length === 0) return res.status(200).json([]);
       return res.status(200).json({
         message: "해당 리스트 조회 성공",
-        data: recordList
+        data: recordList,
       });
     } catch (error) {
       console.error(error);
       res.status(500).json(error.message);
     }
-    
   }
 
   getPreviousWeekRange(year, month) {
@@ -116,7 +117,7 @@ class RecordsController {
         ? { nickname: { contains: nickname, mode: "insensitive" } }
         : {}),
     };
-    
+
     try {
       const rankList = await prisma.record.findMany({
         take: takeNumber,
@@ -139,7 +140,7 @@ class RecordsController {
       res.status(500).json(error.message);
     }
   }
-  
+
   async getRecord(req, res, next) {
     const groupId = Number(req.params.groupId);
     const {
@@ -153,10 +154,17 @@ class RecordsController {
 
     const distanceNumber = Number(distance);
     const recordTimeNumber = Number(recordTime);
-    
-    console.log("조회 할 배열 :" , req.query);
-    console.log("거리 정수 :", typeof distanceNumber, "기록 정수 :", typeof recordTimeNumber, "그룹 인덱스 정수:" , groupId)
-  
+
+    console.log("조회 할 배열 :", req.query);
+    console.log(
+      "거리 정수 :",
+      typeof distanceNumber,
+      "기록 정수 :",
+      typeof recordTimeNumber,
+      "그룹 인덱스 정수:",
+      groupId
+    );
+
     // validation
     if (typeof activityType !== "string" || typeof nickname !== "string")
       return res.status(400).json({ message: " 문자열 오류" });
@@ -193,6 +201,5 @@ class RecordsController {
       res.status(500).json(error.message);
     }
   }
- 
 }
-export default RecordsController; // X new () 
+export default RecordsController; // X new ()

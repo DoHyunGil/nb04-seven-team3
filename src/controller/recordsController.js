@@ -99,6 +99,7 @@ class RecordsController {
 
       return res.status(201).json({
         id: newRecord.id,
+        type: newRecord.type,
         description: newRecord.description,
         time: newRecord.duration,
         distance: newRecord.distance,

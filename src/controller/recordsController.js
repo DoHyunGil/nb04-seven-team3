@@ -46,8 +46,9 @@ class RecordsController {
       return res.status(400).json({ error: "Invalid ActivityType" });
     }
 
-    /*
+  
     try {
+        /*
       // 그룹 존재 여부 확인
       // select로 필요한 필드만 가져오기, 필요 없는 필드까지 가져오지 않도록 조건 추가
       const group = await prisma.group.findFirst({
@@ -115,4 +116,3 @@ class RecordsController {
 }
 
 export default new RecordsController();
-

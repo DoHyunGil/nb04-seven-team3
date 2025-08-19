@@ -28,7 +28,7 @@ class RecordsController {
     
     try {
       const uniqueGroup = await prisma.record.findUnique({where: {id:groupId}})
-      if (! uniqueGroup) return res.status(400).json({error: "그룹 존재 유무 확인"})
+      if (! uniqueGroup ) return res.status(400).json({error: "그룹 존재 유무 확인"})
       const recordList = await prisma.record.findMany({
         where: {
           groupId,

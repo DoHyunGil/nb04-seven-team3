@@ -30,7 +30,7 @@ model Group {
   description       String
   photoUrl          String
   goalRep           Int
-  recommendCount    Int
+  likeCount         Int
   badgeYn           Boolean
   point             Int
   discordWebhookUrl String

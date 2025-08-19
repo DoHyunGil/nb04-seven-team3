@@ -1,5 +1,4 @@
 import { PrismaClient } from '@prisma/client';
-import { group } from 'console';
 
 const prisma = new PrismaClient();
 
@@ -25,7 +24,7 @@ class GroupsController {
             },
           }
         : {};
-      const groups = await prisma.group.findMany({
+      const data = await prisma.group.findMany({
         where,
         skip: (pageNum - 1) * limitNum,
         take: limitNum,
@@ -41,7 +40,7 @@ class GroupsController {
           goalRep: true,
           discordWebhookUrl: true,
           discordInviteUrl: true,
-          recommendCount: true,
+          likeCount: true,
           createdAt: true,
           updatedAt: true,
           badgeYn: true,
@@ -69,14 +68,23 @@ class GroupsController {
                   id: true,
                   nickname: true,
                   createdAt: true,
-                  undatedAt: true,
+                  updatedAt: true,
                 },
               },
             },
           },
         },
       });
-      res.json(groups);
+
+      const result = data.map(({ groupParticipants, ...groups }) => ({
+        ...groups,
+        tags: groups.tags.map((t) => t.tag.name),
+        participants: groupParticipants.map((gp) => gp.participant),
+        badges: groups.badgeYn,
+        likeCount: groups.likeCount,
+      }));
+
+      res.json({ data: result, total: result.length });
     } catch (error) {
       res.status(500).json({ error: `서버 오류 ${error.message}` });
     }
@@ -89,17 +97,28 @@ class GroupsController {
       if (isNaN(groupId)) {
         return res.status(400).json({ error: 'groupId가 유효하지 않습니다.' });
       }
-      const group = await prisma.group.findUnique({
+      const data = await prisma.group.findUnique({
         where: { id: groupId },
         select: {
+          id: true,
           name: true,
-          owner: {
-            select: {
-              nickname: true,
-            },
-          },
           description: true,
           photoUrl: true,
+          goalRep: true,
+          discordWebhookUrl: true,
+          discordInviteUrl: true,
+          likeCount: true,
+          createdAt: true,
+          updatedAt: true,
+          badgeYn: true,
+          owner: {
+            select: {
+              id: true,
+              nickname: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
           tags: {
             select: {
               tag: {
@@ -109,17 +128,31 @@ class GroupsController {
               },
             },
           },
-          goalRep: true,
-          _count: { select: { groupParticipants: true } },
-          discordInviteUrl: true,
+          groupParticipants: {
+            select: {
+              participant: {
+                select: {
+                  id: true,
+                  nickname: true,
+                  createdAt: true,
+                  updatedAt: true,
+                },
+              },
+            },
+          },
         },
       });
-      const { _count, ...rest } = group;
 
-      res.status(200).json({
+      const { groupParticipants, ...rest } = data;
+      const result = {
         ...rest,
-        participantCount: _count.groupParticipants,
-      });
+        tags: rest.tags.map((t) => t.tag.name),
+        participants: groupParticipants.map((gp) => gp.participant),
+        badges: rest.badgeYn,
+        likeCount: rest.likeCount,
+      };
+
+      res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: `서버 오류 ${error.message}` });
     }

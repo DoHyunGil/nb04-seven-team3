@@ -183,14 +183,15 @@ class RecordsController {
         where: {
           id: groupId,
         },
-        select: {
-          activityType: true,
-          distance: true,
-          recordTime: true,
-          nickname: true,
-          photos: true,
-          description: true,
-        },
+        data: {
+          id: record.id,
+          exerciseType: record.type,
+          description: record.description,
+          author: {
+            id: record.author.id,
+            nickname: record.author.nickname
+          }
+        }
       });
       res.status(200).json({
         message: "해당 그룹의 운동기록 조회 성공",

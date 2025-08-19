@@ -1,10 +1,9 @@
-import { PrismaClient } from "@prisma/client";
-import express from "express";
-import recordsRouter from "./records.js";
+import express from 'express';
+import GroupsController from '../controller/groupsController.js';
 
 const router = express.Router();
 
-router.get("/:groupId/records", recordsRouter);
-router.post("/:groupId/records", recordsRouter);
+router.get('/', GroupsController.getAllGroups);
+router.get('/:groupId', GroupsController.getGroupById);
 
 export default router;

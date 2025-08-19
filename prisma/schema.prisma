@@ -26,7 +26,7 @@ enum RankDuration {
 
 model Group {
   id                Int                @id @default(autoincrement())
-  name              String             @unique
+  name              String            
   description       String
   photoUrl          String
   goalRep           Int

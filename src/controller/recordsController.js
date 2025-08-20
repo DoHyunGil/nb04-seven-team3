@@ -9,7 +9,7 @@ class RecordsController {
 
     // Pagination
     const pageNumber = Number(page) || 1;
-    const limitNumber = Number(take) || 10;
+    const limitNumber = Number(limit) || 10;
     const skip = (pageNumber - 1) * limitNumber;
     const groupId = Number(req.params.groupId);
 
@@ -87,7 +87,7 @@ class RecordsController {
     // Pagination
     const { page, limit, sort: rank_type, nickname } = req.query;
     const pageNumber = Number(page) || 1;
-    const limitNumber = Number(take) || 10;
+    const limitNumber = Number(limit) || 10;
     const skip = (pageNumber - 1) * limitNumber;
 
     // Determine weekly/monthly rank range

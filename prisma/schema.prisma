@@ -28,9 +28,9 @@ model Group {
   id                Int                @id @default(autoincrement())
   name              String            
   description       String
-  photoUrl          String
-  goalRep           Int
-  likeCount         Int
+  photoUrl          String             @default("")
+  goalRep           Int                @default(0)
+  likeCount         Int                @default(0)
   badgeYn           Boolean
   point             Int
   discordWebhookUrl String

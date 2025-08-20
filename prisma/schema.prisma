@@ -28,16 +28,21 @@ model Group {
   id                Int                @id @default(autoincrement())
   name              String            
   description       String
-  photoUrl          String             @default("")
-  goalRep           Int                @default(0)
-  likeCount         Int                @default(0)
+  photoUrl          String
+  goalRep           Int
+  likeCount         Int
   badgeYn           Boolean
   point             Int
-  discordWebhookUrl String             @default("")
-  discordInviteUrl  String             @default("")
+  discordWebhookUrl String
+  discordInviteUrl  String
+
+  //1:N 관계입니다. owner는 여러 그룹을 가질 수 있습니다.
   ownerId           Int
-  owner             Participant        @relation("GroupOwner", fields: [ownerId], references: [id])
-  participants      Participant[]      @relation("GroupParticipants")
+  owner             Participant      @relation("GroupOwner", fields: [ownerId], references: [id])
+
+  //N:M 관계입니다.
+  participants Participant[] @relation("GroupMembers")
+
   ranks             Rank[]
   tags              ActivityTag[]
   records           Record[]
@@ -47,17 +52,30 @@ model Group {
 
 model Participant {
   id                Int                @id @default(autoincrement())
-  nickname          String             @unique
+  nickname          String             
   password          String
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   record            Record[]
   like              Like[]
   ranks             Rank[]
-  ownedGroups       Group[]            @relation("GroupOwner")
-  groupId           Int                
-  group             Group              @relation("GroupParticipants", fields: [groupId], references: [id])
+  
+  //가진 그룹을 표시합니다.
+  ownedGroups        Group[]           @relation("GroupOwner")
+  
+  //참가한 그룹들을 표시합니다.
+  groups Group[] @relation("GroupMembers")
 }
+
+
+// model GroupParticipant {
+//   groupId       Int
+//   participantId Int
+//   group         Group       @relation(fields: [groupId], references: [id])
+//   participant   Participant @relation(fields: [participantId], references: [id])
+
+//   @@id([groupId, participantId])
+// }
 
 model Record {
   id          Int          @id @default(autoincrement())

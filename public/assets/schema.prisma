@@ -35,9 +35,9 @@ model Group {
   point             Int
   discordWebhookUrl String
   discordInviteUrl  String
-  nickname          String
-  password          String
-  participant       Participant[]
+  ownerId           Int
+  owner             Participant      @relation("GroupOwner", fields: [ownerId], references: [id])
+  participants Participant[] @relation("GroupMembers")
   ranks             Rank[]
   tags              ActivityTag[]
   records           Record[]
@@ -54,8 +54,8 @@ model Participant {
   record            Record[]
   like              Like[]
   ranks             Rank[]
-  groupId           Int
-  group             Group        @relation(fields: [groupId], references: [id])
+  ownedGroups        Group[]           @relation("GroupOwner")
+  groups Group[] @relation("GroupMembers")
 }
 
 model Record {

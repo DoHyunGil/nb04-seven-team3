@@ -1,5 +1,5 @@
 import express from "express";
-import groupRouters from "./src/routes/groups";
+import groupRouters from "./src/routes/groups.js";
 import recordsRouter from "./src/routes/records.js";
 
 const app = express();

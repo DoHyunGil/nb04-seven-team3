@@ -28,16 +28,16 @@ model Group {
   id                Int                @id @default(autoincrement())
   name              String            
   description       String
-  photoUrl          String
-  goalRep           Int
-  likeCount         Int
+  photoUrl          String             @default("")
+  goalRep           Int                @default(0)
+  likeCount         Int                @default(0)
   badgeYn           Boolean
   point             Int
-  discordWebhookUrl String
-  discordInviteUrl  String
+  discordWebhookUrl String             @default("")
+  discordInviteUrl  String             @default("")
   ownerId           Int
   owner             Participant        @relation("GroupOwner", fields: [ownerId], references: [id])
-  groupParticipants GroupParticipant[]
+  participants      Participant[]      @relation("GroupParticipants")
   ranks             Rank[]
   tags              ActivityTag[]
   records           Record[]
@@ -55,16 +55,8 @@ model Participant {
   like              Like[]
   ranks             Rank[]
   ownedGroups       Group[]            @relation("GroupOwner")
-  groupParticipants GroupParticipant[]
-}
-
-model GroupParticipant {
-  groupId       Int
-  participantId Int
-  group         Group       @relation(fields: [groupId], references: [id])
-  participant   Participant @relation(fields: [participantId], references: [id])
-
-  @@id([groupId, participantId])
+  groupId           Int                
+  group             Group              @relation("GroupParticipants", fields: [groupId], references: [id])
 }
 
 model Record {

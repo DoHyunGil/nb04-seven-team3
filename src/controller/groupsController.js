@@ -29,13 +29,13 @@ class GroupsContriller {
 
         //필수값 검증
         if(
-          !name &&
-          !description &&
-          !photoUrl &&
-          !goalRep &&
-          !discordWebhookUrl &&
-          !discordInviteUrl &&
-          !nickname &&
+          !name ||
+          !description ||
+          !photoUrl ||
+          !goalRep ||
+          !discordWebhookUrl ||
+          !discordInviteUrl ||
+          !nickname ||
           !password
         ) {
           return res.status(400).json({ error: "필수 작성 내용이 누락되었습니다."  })
@@ -99,13 +99,13 @@ class GroupsContriller {
 
           //필수값 검증
           if(
-            !name &&
-            !description &&
-            !photoUrl &&
-            !goalRep &&
-            !discordWebhookUrl &&
-            !discordInviteUrl &&
-            !nickname &&
+            !name ||
+            !description ||
+            !photoUrl ||
+            !goalRep ||
+            !discordWebhookUrl ||
+            !discordInviteUrl ||
+            !nickname ||
             !password
           ) {
             return res.status(400).json({ error: "필수 작성 내용이 누락되었습니다."  })

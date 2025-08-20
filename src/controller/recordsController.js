@@ -217,3 +217,4 @@ class RecordsController {
 }
 
 export default RecordsController; // Do not instantiate here
+  

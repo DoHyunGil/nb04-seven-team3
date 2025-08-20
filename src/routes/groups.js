@@ -3,6 +3,10 @@ import groupsController from "../controller/groupsController.js";
 
 const router = express.Router();
 
+//Record로 가는 경로
+router.get("/:groupId/records", recordsRouter);
+router.post("/:groupId/records", recordsRouter);
+
 //Group 생성
 router.post("/", groupsController.createGroupRecord);
 

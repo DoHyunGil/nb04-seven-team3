@@ -1,12 +1,13 @@
-import { PrismaClient, ActivityType } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
-const allowedRanks = ["월간순", "주간순"];
-class RecordsController {
-  async getRecordList(req, res, next) {
-    const { nickname, page, take, sortType } = req.query;
+const allowedRanks = ["MONTHLY", "WEEKLY"];
 
-    // pagenation
+class RecordsController {
+  async getRecordList(req, res) {
+    const { nickname, page, take, sortType, like } = req.query;
+
+    // Pagination
     const pageNumber = Number(page) || 1;
     const takeNumber = Number(take) || 10;
     const skip = (pageNumber - 1) * takeNumber;
@@ -16,16 +17,24 @@ class RecordsController {
       typeof pageNumber,
       typeof takeNumber,
       typeof skip,
-      typeof groupId
+      typeof groupId,
+      typeof like
     );
-    console.log("요청된 파라미터: ", req.params);
-    // 가지치기
+    console.log("Requested query: ", req.query);
+    console.log("Requseted data: ", req)
+    // Validation
     if (skip < 0)
-      return res.status(400).json({ error: "skip은 음수가 되면 안됩니다" });
+      return res.status(400).json({
+        error: "Skip value cannot be negative",
+      });
+    if (like < 0)
+      return res.status(400).json({
+        error: "Like value cannot be negative",
+      });
 
     const sortMap = {
-      최신순: { createdAt: "desc" },
-      "운동 시간순": { duration: "desc" },
+      latest: { createdAt: "desc" },
+      duration: { duration: "desc" },
     };
 
     try {
@@ -33,33 +42,23 @@ class RecordsController {
         where: { id: groupId },
       });
       if (!uniqueGroup)
-        return res.status(400).json({ error: "그룹 존재 유무 확인" });
+        return res.status(400).json({ error: "Group does not exist" });
+
       const recordList = await prisma.record.findMany({
         where: {
           groupId,
           ...(nickname
             ? { nickname: { contains: nickname, mode: "insensitive" } }
-            : {}), // nickname 으로 조회 가능
+            : {}),
         },
         take: takeNumber,
         skip,
-
-        select: {
-          // 닉네임, 거리, 운동시간, 운동 종류, 사진 표시
-          nickname: true,
-          distance: true,
-          activityType: true,
-          photos: true,
-          duration: true,
-        },
-
-        //운동 시간 많은 순, 최신순으로 정렬
         orderBy: sortMap[sortType] ? [sortMap[sortType]] : [],
       });
 
       if (recordList.length === 0) return res.status(200).json([]);
       return res.status(200).json({
-        message: "해당 리스트 조회 성공",
+        message: "Record list retrieved successfully",
         data: recordList,
       });
     } catch (error) {
@@ -83,34 +82,41 @@ class RecordsController {
       end: endOfMonth(now),
     };
   }
+
   async getRankRecords(req, res, next) {
-    // pagination
+    // Pagination
     const { page, take, sort: rank_type, nickname } = req.query;
     const pageNumber = Number(page) || 1;
     const takeNumber = Number(take) || 10;
     const skip = (pageNumber - 1) * takeNumber;
 
-    // sort for weekly or monthly
+    // Determine weekly/monthly rank range
     let start, end;
-    if (rank_type === "월간순") {
+    if (rank_type === "MONTHLY") {
       ({ start, end } = this.getCurrentMonthRange());
-    } else if (rank_type === "주간순") {
+    } else if (rank_type === "WEEKLY") {
       ({ start, end } = this.getPreviousWeekRange(2025, 8));
     }
 
-    // prunning
+    console.log("req query: ", req.query)
+
+    // Validation
     if (isNaN(pageNumber) || isNaN(takeNumber))
-      return res.status(400).json({ error: "페이지네이션 요청 리퀘스트 오류" });
+      return res.status(400).json({ error: "Invalid pagination values" });
     if (skip < 0)
-      return res.status(400).json({ error: "페이지네이션 스킵값오류" });
+      return res.status(400).json({ error: "Skip value must be positive" });
     if (!allowedRanks.includes(rank_type) && typeof rank_type !== "string")
-      return res.status(400).json({ error: "랭크 정렬 오류" });
+      return res
+        .status(400)
+        .json({ error: "Invalid sort type for rank list" });
+
     const dateFilter = {
       recordDate: {
         gte: start,
         lte: end,
       },
     };
+
     const whereCondition = {
       ...dateFilter,
       ...(nickname
@@ -131,8 +137,9 @@ class RecordsController {
           nickname: true,
         },
       });
+
       res.status(200).json({
-        message: "랭크 리스트 조회 성공",
+        message: "Rank list retrieved successfully",
         data: rankList,
       });
     } catch (error) {
@@ -155,46 +162,51 @@ class RecordsController {
     const distanceNumber = Number(distance);
     const recordTimeNumber = Number(recordTime);
 
-    console.log("조회 할 배열 :", req.query);
+    console.log("Query parameters:", req.query);
     console.log(
-      "거리 정수 :",
+      "Distance type:",
       typeof distanceNumber,
-      "기록 정수 :",
+      "Record time type:",
       typeof recordTimeNumber,
-      "그룹 인덱스 정수:",
-      groupId
+      "Group index type:",
+      typeof groupId
     );
 
-    // validation
-    if (typeof activityType !== "string" || typeof nickname !== "string")
-      return res.status(400).json({ message: " 문자열 오류" });
+    // Validation
+    if (typeof activityType !== "string")
+      return res.status(400).json({ message: "Exercise type must be a string" });
+    if (typeof nickname !== "string")
+      return res.status(400).json({ message: "Nickname must be a string" });
 
     if (isNaN(groupId))
       return res.status(400).json({
         path: "groupId",
-        message: " GroupId 는 정수 여야합니다",
+        message: "groupId must be an integer",
       });
 
-    if (isNaN(distanceNumber) || isNaN(recordTimeNumber))
-      return res.status(400).json({ message: "정수 확인" });
+    if (isNaN(distanceNumber))
+      return res.status(400).json({ message: "Distance must be an integer" });
+    if (isNaN(recordTimeNumber))
+      return res.status(400).json({ message: "Record time must be an integer" });
 
     try {
-      const record = await prisma.record.findUnique({
-        where: {
-          id: groupId,
-        },
-        data: {
-          id: record.id,
-          exerciseType: record.type,
-          description: record.description,
-          author: {
-            id: record.author.id,
-            nickname: record.author.nickname
-          }
-        }
+      // Check if group exists
+      const group = await prisma.group.findUnique({ where: { groupId } });
+      if (!group) return res.status(404).json({ error: "Group does not exist" });
+
+      // Fetch records for the group
+      const record = await prisma.record.findMany({
+        where: { id: groupId },
+        ...(nickname && { nickname }),
+        ...(description && { description }),
+        ...(activityType && { activityType }),
+        ...(distance && { distance: distanceNumber }),
+        ...(recordTime && { recordTime: recordTimeNumber }),
+        ...(photos && { photos }),
       });
+
       res.status(200).json({
-        message: "해당 그룹의 운동기록 조회 성공",
+        message: "Successfully retrieved the group's workout records",
         data: record,
       });
     } catch (error) {
@@ -203,4 +215,6 @@ class RecordsController {
     }
   }
 }
-export default RecordsController; // X new ()
+
+export default RecordsController; // Do not instantiate here
+  

@@ -5,17 +5,17 @@ const allowedRanks = ["MONTHLY", "WEEKLY"];
 
 class RecordsController {
   async getRecordList(req, res) {
-    const { nickname, page, take, sortType, like } = req.query;
+    const { nickname, page, limit, sortType, like } = req.query;
 
     // Pagination
     const pageNumber = Number(page) || 1;
-    const takeNumber = Number(take) || 10;
-    const skip = (pageNumber - 1) * takeNumber;
+    const limitNumber = Number(take) || 10;
+    const skip = (pageNumber - 1) * limitNumber;
     const groupId = Number(req.params.groupId);
 
     console.log(
       typeof pageNumber,
-      typeof takeNumber,
+      typeof limitNumber,
       typeof skip,
       typeof groupId,
       typeof like
@@ -51,7 +51,7 @@ class RecordsController {
             ? { nickname: { contains: nickname, mode: "insensitive" } }
             : {}),
         },
-        take: takeNumber,
+        limit: limitNumber,
         skip,
         orderBy: sortMap[sortType] ? [sortMap[sortType]] : [],
       });
@@ -85,10 +85,10 @@ class RecordsController {
 
   async getRankRecords(req, res, next) {
     // Pagination
-    const { page, take, sort: rank_type, nickname } = req.query;
+    const { page, limit, sort: rank_type, nickname } = req.query;
     const pageNumber = Number(page) || 1;
-    const takeNumber = Number(take) || 10;
-    const skip = (pageNumber - 1) * takeNumber;
+    const limitNumber = Number(take) || 10;
+    const skip = (pageNumber - 1) * limitNumber;
 
     // Determine weekly/monthly rank range
     let start, end;
@@ -101,7 +101,7 @@ class RecordsController {
     console.log("req query: ", req.query)
 
     // Validation
-    if (isNaN(pageNumber) || isNaN(takeNumber))
+    if (isNaN(pageNumber) || isNaN(limitNumber))
       return res.status(400).json({ error: "Invalid pagination values" });
     if (skip < 0)
       return res.status(400).json({ error: "Skip value must be positive" });
@@ -126,7 +126,7 @@ class RecordsController {
 
     try {
       const rankList = await prisma.record.findMany({
-        take: takeNumber,
+        limit: limitNumber,
         skip,
         where: whereCondition,
         orderBy: {

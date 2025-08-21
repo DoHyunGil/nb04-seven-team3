@@ -5,7 +5,7 @@ class LikesController {
   // 그룹 좋아요 추가
   async addLike(req, res) {
     const groupId = Number(req.params.groupId);
-    const { nickname } = req.body;
+    const { participantId } = req.body;
 
     try {
       // 그룹 존재 여부 확인
@@ -17,12 +17,12 @@ class LikesController {
       // 좋아요 생성 (중복 방지)
       const like = await prisma.like.upsert({
         where: {
-          groupId_nickname: { groupId, nickname },
+          groupId_participantId: { groupId, participantId },
         },
         update: {},
         create: {
           groupId,
-          nickname,
+          participantId,
         },
       });
 
@@ -36,12 +36,12 @@ class LikesController {
   // 그룹 좋아요 취소
   async removeLike(req, res) {
     const groupId = Number(req.params.groupId);
-    const { nickname } = req.body;
+    const { participantId } = req.body;
 
     try {
       await prisma.like.delete({
         where: {
-          groupId_nickname: { groupId, nickname },
+          groupId_participantId: { groupId, participantId },
         },
       });
 
@@ -51,6 +51,23 @@ class LikesController {
       return res.status(500).json({ error: "서버 오류" });
     }
   }
+
+  // 그룹 추천수 조회
+  async getLikeCount(req, res) {
+    const groupId = Number(req.params.groupId);
+
+    try {
+      const count = await prisma.like.count({
+        where: { groupId },
+      });
+
+      return res.status(200).json({ groupId, recommendCount: count });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: "서버 오류" });
+    }
+  }
 }
 
 export default new LikesController();
+

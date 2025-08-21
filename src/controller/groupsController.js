@@ -30,7 +30,7 @@ class GroupsController {
         take: limitNum,
         orderBy:
           orderBy === 'participantCount'
-            ? { groupParticipants: { _count: order } }
+            ? { participant: { _count: order } }
             : { [orderBy]: order },
         select: {
           id: true,
@@ -44,30 +44,23 @@ class GroupsController {
           createdAt: true,
           updatedAt: true,
           badgeYn: true,
-          owner: {
-            select: {
-              id: true,
-              nickname: true,
-              createdAt: true,
-              updatedAt: true,
-            },
-          },
-          tags: {
-            select: {
-              tag: {
-                select: {
-                  name: true,
-                },
+          nickname: true,
+        },
+        tags: {
+          select: {
+            tag: {
+              select: {
+                name: true,
               },
             },
           },
-          participant: {
-            select: {
-              id: true,
-              nickname: true,
-              createdAt: true,
-              updatedAt: true,
-            },
+        },
+        participant: {
+          select: {
+            id: true,
+            nickname: true,
+            createdAt: true,
+            updatedAt: true,
           },
         },
       });
@@ -82,10 +75,21 @@ class GroupsController {
         discordInviteUrl: groups.discordInviteUrl,
         likeCount: groups.likeCount,
         tags: groups.tags.map((t) => t.tag.name),
-        owner: 
-        participants: groupParticipants.map((gp) => gp.participant),
+        owner: {
+          id: groups.id,
+          nickname: groups.nickname,
+          createdAt: groups.createdAt.getTime(),
+          updatedAt: groups.updatedAt.getTime(),
+        },
+        participants: groups.participant.map((p) => ({
+          id: p.id,
+          nickname: p.nickname,
+          createdAt: p.createdAt.getTime(),
+          updatedAt: p.updatedAt.getTime(),
+        })),
+        createdAt: groups.createdAt.getTime(),
+        updatedAt: groups.updatedAt.getTime(),
         badges: groups.badgeYn,
-        
       }));
 
       res.json({ data: result, total: result.length });
@@ -115,14 +119,7 @@ class GroupsController {
           createdAt: true,
           updatedAt: true,
           badgeYn: true,
-          owner: {
-            select: {
-              id: true,
-              nickname: true,
-              createdAt: true,
-              updatedAt: true,
-            },
-          },
+          nickname: true,
           tags: {
             select: {
               tag: {
@@ -132,28 +129,47 @@ class GroupsController {
               },
             },
           },
-          groupParticipants: {
+          participant: {
             select: {
-              participant: {
-                select: {
-                  id: true,
-                  nickname: true,
-                  createdAt: true,
-                  updatedAt: true,
-                },
-              },
+              id: true,
+              nickname: true,
+              createdAt: true,
+              updatedAt: true,
             },
           },
         },
       });
+
+      if (!data) {
+        return res.status(404).json({ error: '그룹을 찾을 수 없습니다.' });
+      }
+
       //response body 평탄화
-      const { groupParticipants, ...rest } = data;
       const result = {
-        ...rest,
-        tags: rest.tags.map((t) => t.tag.name),
-        participants: groupParticipants.map((gp) => gp.participant),
-        badges: rest.badgeYn,
-        likeCount: rest.likeCount,
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        photoUrl: data.photoUrl,
+        goalRep: data.goalRep,
+        discordWebhookUrl: data.discordWebhookUrl,
+        discordInviteUrl: data.discordInviteUrl,
+        likeCount: data.likeCount,
+        tags: data.tags.map((t) => t.tag.name),
+        owner: {
+          id: data.id,
+          nickname: data.nickname,
+          createdAt: data.createdAt.getTime(),
+          updatedAt: data.updatedAt.getTime(),
+        },
+        participants: data.participant.map((p) => ({
+          id: p.id,
+          nickname: p.nickname,
+          createdAt: p.createdAt.getTime(),
+          updatedAt: p.updatedAt.getTime(),
+        })),
+        createdAt: data.createdAt.getTime(),
+        updatedAt: data.updatedAt.getTime(),
+        badges: data.badgeYn,
       };
 
       res.status(200).json(result);

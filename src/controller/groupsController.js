@@ -228,22 +228,36 @@ class GroupsController {
         return res.status(400).json({ error: '중복된 닉네임이 존재합니다.' });
       }
 
-      const group = await prisma.group.create({
-        data: {
-          name,
-          description,
-          photoUrl,
-          goalRep,
-          likeCount,
-          badgeYn,
-          point,
-          discordWebhookUrl,
-          discordInviteUrl,
-          nickname,
-          password,
-        },
+      //그룹 생성
+      const result = await prisma.$transaction(async (tx) => {
+        //1. 그룹 생성
+        const group = await tx.group.create({
+          data: {
+            name,
+            description,
+            photoUrl,
+            goalRep,
+            likeCount,
+            badgeYn,
+            point,
+            discordWebhookUrl,
+            discordInviteUrl,
+            nickname,
+            password,
+          }
+        });
+        console.log(`group: ${group.id}, nickname: ${group.nickname}, password: ${group.password}`);
+        //2. 참가자 등록(그룹오너) : 그룹생성시 사용했던 nickname, password 자동부과
+        const participant = await tx.participant.create({
+          data: {
+            nickname: group.nickname,
+            password: group.password,
+            groupId: group.id
+          }
+        });
       });
-      res.status(200).send(group);
+      res.status(200).send( {message: '그룹생성 되었습니다!'} );
+
     } catch (error) {
       console.log(error);
       res.status(400).json({ error: '그룹등록에 실패했습니다!' });
@@ -319,14 +333,23 @@ class GroupsController {
    *  @param : {*} RequestBody
    */
   deleteGroupRecord = async (req, res) => {
+
     try {
       const id = parseInt(req.params.id);
       console.log(`groupsController deleteGroupRecord()..  groupId:${id} `);
 
-      const group = await prisma.group.delete({
-        where: { id },
+      const result = await prisma.$transaction(async (tx) => {
+        //1. 참가자삭제
+        const participant = await tx.participant.deleteMany({
+          where: { groupId: id }
+        })
+        //2. 그룹삭제
+        const group = await tx.group.delete({
+          where: { id }
+        });
       });
-      res.status(200).send(group);
+      res.status(200).send( {message: '그룹삭제 되었습니다!'} );
+
     } catch (error) {
       console.log(error);
       res.status(400).json({ error: '그룹삭제에 실패했습니다!' });

@@ -41,6 +41,7 @@ model Group {
   ranks           Rank[]
   tags            ActivityTag[]
   records         Record[]
+  likes           Like[]
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 }
@@ -64,7 +65,6 @@ id          Int           @id @default(autoincrement())
   duration    Int
   distance    Float
   photos      Photo[]
-  likes       Like[]
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   authorId    Int
@@ -83,8 +83,8 @@ model Photo {
 
 model Like {
   id            Int         @id @default(autoincrement())
-  recordId      Int
-  record        Record      @relation(fields: [recordId], references: [id])
+  groupId       Int
+  group         Group        @relation(fields: [groupId], references: [id])
   participantId Int
   participant   Participant @relation(fields: [participantId], references: [id])
 

@@ -6,6 +6,8 @@ class GroupsController {
   //그룹 목록 조회
   async getAllGroups(req, res) {
     try {
+      const DEFAULT_IMAGE =
+        'https://via.placeholder.com/150/000000/000000?text=+';
       const {
         page = 1,
         limit = 10,
@@ -45,22 +47,22 @@ class GroupsController {
           updatedAt: true,
           badgeYn: true,
           nickname: true,
-        },
-        tags: {
-          select: {
-            tag: {
-              select: {
-                name: true,
+          tags: {
+            select: {
+              tag: {
+                select: {
+                  name: true,
+                },
               },
             },
           },
-        },
-        participant: {
-          select: {
-            id: true,
-            nickname: true,
-            createdAt: true,
-            updatedAt: true,
+          participant: {
+            select: {
+              id: true,
+              nickname: true,
+              createdAt: true,
+              updatedAt: true,
+            },
           },
         },
       });
@@ -69,7 +71,7 @@ class GroupsController {
         id: groups.id,
         name: groups.name,
         description: groups.description,
-        photoUrl: groups.photoUrl,
+        photoUrl: groups.photoUrl || DEFAULT_IMAGE,
         goalRep: groups.goalRep,
         discordWebhookUrl: groups.discordWebhookUrl,
         discordInviteUrl: groups.discordInviteUrl,
@@ -149,7 +151,7 @@ class GroupsController {
         id: data.id,
         name: data.name,
         description: data.description,
-        photoUrl: data.photoUrl,
+        photoUrl: data.photoUrl || DEFAULT_IMAGE,
         goalRep: data.goalRep,
         discordWebhookUrl: data.discordWebhookUrl,
         discordInviteUrl: data.discordInviteUrl,

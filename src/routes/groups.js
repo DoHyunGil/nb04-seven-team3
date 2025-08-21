@@ -16,4 +16,6 @@ router.patch("/:id", groupsController.updateGroupRecord);
 //Group 삭제
 router.delete("/:id", groupsController.deleteGroupRecord);
 
+
+
 export default router;

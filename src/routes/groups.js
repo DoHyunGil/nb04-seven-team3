@@ -16,6 +16,9 @@ router.patch("/:id", groupsController.updateGroupRecord);
 //Group 삭제
 router.delete("/:id", groupsController.deleteGroupRecord);
 
-
+router.get("/", GroupsController.getAllGroups);
+router.get("/:groupId", GroupsController.getGroupById);
+router.get("/", GroupsController.getAllGroups);
+router.get("/:groupId", GroupsController.getGroupById);
 
 export default router;

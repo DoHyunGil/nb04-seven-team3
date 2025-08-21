@@ -61,27 +61,31 @@ class GroupsController {
               },
             },
           },
-          groupParticipants: {
+          participant: {
             select: {
-              participant: {
-                select: {
-                  id: true,
-                  nickname: true,
-                  createdAt: true,
-                  updatedAt: true,
-                },
-              },
+              id: true,
+              nickname: true,
+              createdAt: true,
+              updatedAt: true,
             },
           },
         },
       });
-
-      const result = data.map(({ groupParticipants, ...groups }) => ({
-        ...groups,
+      //response body 평탄화
+      const result = data.map((groups) => ({
+        id: groups.id,
+        name: groups.name,
+        description: groups.description,
+        photoUrl: groups.photoUrl,
+        goalRep: groups.goalRep,
+        discordWebhookUrl: groups.discordWebhookUrl,
+        discordInviteUrl: groups.discordInviteUrl,
+        likeCount: groups.likeCount,
         tags: groups.tags.map((t) => t.tag.name),
+        owner: 
         participants: groupParticipants.map((gp) => gp.participant),
         badges: groups.badgeYn,
-        likeCount: groups.likeCount,
+        
       }));
 
       res.json({ data: result, total: result.length });
@@ -142,7 +146,7 @@ class GroupsController {
           },
         },
       });
-
+      //response body 평탄화
       const { groupParticipants, ...rest } = data;
       const result = {
         ...rest,

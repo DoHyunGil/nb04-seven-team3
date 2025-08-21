@@ -1,16 +1,15 @@
 import express from "express";
-import RecordsController from "../controller/recordsController.js";
+import recordsController from "../controller/recordsController.js";
 
 const router = express.Router();
 
-// POST - 그룹 운동 기록 생성
-router.post("/:groupId/records", RecordsController.createRecord);
+// // POST - 그룹 운동 기록 생성
+router.post("/:groupId/records", recordsController.createRecord);
 
+router.get("/:groupId/record/rank", recordsController.getRankRecords);
 
-router.get("/:groupId/record/rank",RecordsController.getRankRecords);
+router.get("/:groupId/record", recordsController.getRecordList);
 
-router.get("/:groupId/record", RecordsController.getRecordList);
-
-router.get("/:groupId/record/", RecordsController.getRecord);
+router.get("/:groupId/record/", recordsController.getRecord);
 
 export default router;

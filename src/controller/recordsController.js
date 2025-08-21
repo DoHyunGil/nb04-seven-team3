@@ -21,7 +21,7 @@ class RecordsController {
       typeof like
     );
     console.log("Requested query: ", req.query);
-    console.log("Requseted data: ", req)
+    console.log("Requseted data: ", req);
     // Validation
     if (skip < 0)
       return res.status(400).json({
@@ -98,7 +98,7 @@ class RecordsController {
       ({ start, end } = this.getPreviousWeekRange(2025, 8));
     }
 
-    console.log("req query: ", req.query)
+    console.log("req query: ", req.query);
 
     // Validation
     if (isNaN(pageNumber) || isNaN(limitNumber))
@@ -106,9 +106,7 @@ class RecordsController {
     if (skip < 0)
       return res.status(400).json({ error: "Skip value must be positive" });
     if (!allowedRanks.includes(rank_type) && typeof rank_type !== "string")
-      return res
-        .status(400)
-        .json({ error: "Invalid sort type for rank list" });
+      return res.status(400).json({ error: "Invalid sort type for rank list" });
 
     const dateFilter = {
       recordDate: {
@@ -174,7 +172,9 @@ class RecordsController {
 
     // Validation
     if (typeof activityType !== "string")
-      return res.status(400).json({ message: "Exercise type must be a string" });
+      return res
+        .status(400)
+        .json({ message: "Exercise type must be a string" });
     if (typeof nickname !== "string")
       return res.status(400).json({ message: "Nickname must be a string" });
 
@@ -187,12 +187,15 @@ class RecordsController {
     if (isNaN(distanceNumber))
       return res.status(400).json({ message: "Distance must be an integer" });
     if (isNaN(recordTimeNumber))
-      return res.status(400).json({ message: "Record time must be an integer" });
+      return res
+        .status(400)
+        .json({ message: "Record time must be an integer" });
 
     try {
       // Check if group exists
       const group = await prisma.group.findUnique({ where: { groupId } });
-      if (!group) return res.status(404).json({ error: "Group does not exist" });
+      if (!group)
+        return res.status(404).json({ error: "Group does not exist" });
 
       // Fetch records for the group
       const record = await prisma.record.findMany({
@@ -214,8 +217,7 @@ class RecordsController {
       res.status(500).json(error.message);
     }
   }
-}
-  
+
   createRecord = async (req, res) => {
     const groupIdNum = Number(req.params.groupId); // groupId 문자열 -> 숫자 변환
     const {
@@ -245,7 +247,9 @@ class RecordsController {
       !authorNickname ||
       !authorPassword
     ) {
-      return res.status(400).json({ error: "필수 작성 내용이 누락되었습니다." });
+      return res
+        .status(400)
+        .json({ error: "필수 작성 내용이 누락되었습니다." });
     }
 
     // ActivityType 매핑
@@ -259,9 +263,8 @@ class RecordsController {
       return res.status(400).json({ error: "Invalid ActivityType" });
     }
 
-  
     try {
-        /*
+      /*
       // 그룹 존재 여부 확인
       // select로 필요한 필드만 가져오기, 필요 없는 필드까지 가져오지 않도록 조건 추가
       const group = await prisma.group.findFirst({
@@ -327,5 +330,6 @@ class RecordsController {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   };
+}
 
-export default RecordsController;
+export default new RecordsController();

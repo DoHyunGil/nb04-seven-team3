@@ -15,7 +15,7 @@ class LikesController {
       }
 
       // 좋아요 생성 (중복 방지)
-      const like = await prisma.groupLike.upsert({
+      const like = await prisma.like.upsert({
         where: {
           groupId_nickname: { groupId, nickname },
         },
@@ -39,7 +39,7 @@ class LikesController {
     const { nickname } = req.body;
 
     try {
-      await prisma.groupLike.delete({
+      await prisma.like.delete({
         where: {
           groupId_nickname: { groupId, nickname },
         },

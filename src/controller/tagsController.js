@@ -7,19 +7,57 @@ class TagsController {
    * API명 : 태그 목록조회
    * @param : {*} 
    */
-  getAllTags = async (req, res) => {
+  async getAllTags(req, res) {
     try{
-        console.log('[TagsController] getAllTags..');
+       console.log('[TagsController] getAllTags..'); 
+       const {
+          page = 1,
+          limit = 10,
+          order = 'asc',
+          orderBy = 'id',
+          search = ''
+        } = req.query;
+        
+        const pageNum = Number(page);
+        const limitNum = Number(limit);
+        console.log(`search: ${search}`);
+
         const tags = await prisma.tag.findMany({
-            orderBy:{
-                id: 'asc'
+            where: {
+              name: { contains: search },
             },
+            skip: (pageNum - 1) * limitNum,
+            take: limitNum,
+            orderBy:{
+                    id: 'asc',
+                }
         });
-        res.status(200).send(tags);
+
+        const totalCount = await prisma.tag.count({
+            where: {
+              name: { contains: search },
+            },
+            skip: (pageNum - 1) * limitNum,
+            take: limitNum,
+            orderBy:{
+                    id: 'asc',
+                }
+        });
+        console.log(`totalCount: ${totalCount}`);
+        //response body 평탄화
+        const result = {}; 
+        const data = tags.map((tag) => ({
+            id: tag.id,
+            name: tag.name
+        }));
+        result.data = data;
+        result['total'] = totalCount;
+        return res.status(200).json(result);
 
     } catch (error) {
       console.log(error);
-      res.status(400).json({ error: '태그목록 조회에 실패했습니다!' });
+      res.status(400).json({ "path": "groupId", 
+                             "message": "groupId must be integer"});
     }
   };
   /**
@@ -28,25 +66,19 @@ class TagsController {
    */
   getTags = async (req, res) => {
     try{
-        const id = req.params.id;
+        const id = Number(req.params.id);
+        if( isNaN(id) ){
+          return res.status(400).json();
+        }
         console.log(`[TagsController] getTags  id: ${id}`);
         const tags = await prisma.tag.findFirst({
-            where: {
-                id: parseInt(id)
-            },
-            include: {
-              activityTags: {
-                include: {
-                  group: true,
-                }
-              }
-            },
+            where: { id },
         });
         res.status(200).send(tags);
 
     } catch (error) {
       console.log(error);
-      res.status(400).json({ error: '태그목록 조회에 실패했습니다!' });
+      res.status(400).json({ error: '태그상세 조회에 실패했습니다!' });
     }
   };
 

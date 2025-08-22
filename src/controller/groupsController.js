@@ -14,16 +14,25 @@ class GroupsController {
         search = '',
       } = req.query;
 
-      const pageNum = Number(page);
-      const limitNum = Number(limit);
+      const pageNum = Math.max(page, 1);
+      const limitNum = Math.min(Math.max(limit, 1), 10);
       const where = search
         ? {
             name: {
-              contains: search,
+              contains: search, // constains는 문자열 필드가 특정 문자열을 포함하고 있는지를 검사함.
               mode: 'insensitive',
             },
           }
         : {};
+
+      const totalCount = await prisma.group.count({ where });
+
+      if ((pageNum - 1) * limitNum >= totalCount) {
+        return res
+          .status(400)
+          .json({ error: '요청한 페이지가 존재하지 않습니다.' });
+      }
+
       const data = await prisma.group.findMany({
         where,
         skip: (pageNum - 1) * limitNum,
@@ -45,22 +54,22 @@ class GroupsController {
           updatedAt: true,
           badgeYn: true,
           nickname: true,
-        },
-        tags: {
-          select: {
-            tag: {
-              select: {
-                name: true,
+          tags: {
+            select: {
+              tag: {
+                select: {
+                  name: true,
+                },
               },
             },
           },
-        },
-        participant: {
-          select: {
-            id: true,
-            nickname: true,
-            createdAt: true,
-            updatedAt: true,
+          participant: {
+            select: {
+              id: true,
+              nickname: true,
+              createdAt: true,
+              updatedAt: true,
+            },
           },
         },
       });
@@ -244,20 +253,21 @@ class GroupsController {
             discordInviteUrl,
             nickname,
             password,
-          }
+          },
         });
-        console.log(`group: ${group.id}, nickname: ${group.nickname}, password: ${group.password}`);
+        console.log(
+          `group: ${group.id}, nickname: ${group.nickname}, password: ${group.password}`
+        );
         //2. 참가자 등록(그룹오너) : 그룹생성시 사용했던 nickname, password 자동부과
         const participant = await tx.participant.create({
           data: {
             nickname: group.nickname,
             password: group.password,
-            groupId: group.id
-          }
+            groupId: group.id,
+          },
         });
       });
-      res.status(200).send( {message: '그룹생성 되었습니다!'} );
-
+      res.status(200).send({ message: '그룹생성 되었습니다!' });
     } catch (error) {
       console.log(error);
       res.status(400).json({ error: '그룹등록에 실패했습니다!' });
@@ -333,7 +343,6 @@ class GroupsController {
    *  @param : {*} RequestBody
    */
   deleteGroupRecord = async (req, res) => {
-
     try {
       const id = parseInt(req.params.id);
       console.log(`groupsController deleteGroupRecord()..  groupId:${id} `);
@@ -341,15 +350,14 @@ class GroupsController {
       const result = await prisma.$transaction(async (tx) => {
         //1. 참가자삭제
         const participant = await tx.participant.deleteMany({
-          where: { groupId: id }
-        })
+          where: { groupId: id },
+        });
         //2. 그룹삭제
         const group = await tx.group.delete({
-          where: { id }
+          where: { id },
         });
       });
-      res.status(200).send( {message: '그룹삭제 되었습니다!'} );
-
+      res.status(200).send({ message: '그룹삭제 되었습니다!' });
     } catch (error) {
       console.log(error);
       res.status(400).json({ error: '그룹삭제에 실패했습니다!' });

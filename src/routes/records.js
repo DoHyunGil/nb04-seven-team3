@@ -6,10 +6,10 @@ const router = express.Router();
 // // POST - 그룹 운동 기록 생성
 router.post("/:groupId/records", recordsController.createRecord);
 
-router.get("/:groupId/record/rank", recordsController.getRankRecords);
+router.get("/:groupId/records/rank", recordsController.getRankRecords);
 
-router.get("/:groupId/record", recordsController.getRecordList);
+router.get("/:groupId/records", recordsController.getRecordList);
 
-router.get("/:groupId/record/", recordsController.getRecord);
+router.get("/:groupId/records/", recordsController.getRecord);
 
 export default router;

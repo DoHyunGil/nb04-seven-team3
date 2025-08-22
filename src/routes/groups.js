@@ -1,20 +1,22 @@
 import express from "express";
-import groupsController from "../controller/groupsController.js";
+import GroupsController from "../controller/groupsController.js";
 
 const router = express.Router();
 
-//Record로 가는 경로
-router.get("/:groupId/records", recordsRouter);
-router.post("/:groupId/records", recordsRouter);
-
 //Group 생성
-router.post("/", groupsController.createGroupRecord);
+router.post("/", GroupsController.createGroupRecord);
 
 //Group 수정
-router.patch("/:id", groupsController.updateGroupRecord);
+router.patch("/:id", GroupsController.updateGroupRecord);
 
 //Group 삭제
-router.delete("/:id", groupsController.deleteGroupRecord);
+router.delete("/:id", GroupsController.deleteGroupRecord);
+
+//Group 목록 전체 조회
+router.get("/", GroupsController.getAllGroups);
+
+//Group 목록 상세 조회
+router.get("/:groupId", GroupsController.getGroupById);
 
 
 

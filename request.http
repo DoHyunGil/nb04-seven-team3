@@ -1,0 +1,40 @@
+
+###  그룹 등록
+POST http://localhost:4000/groups
+Content-Type: application/json
+
+{
+    "name": "2번째등록",
+    "description": "그룹등록 테스트",
+    "photoUrl":"www.image.co.kr",
+    "goalRep": 100,
+    "discordWebhookUrl": "www.grouptest.com",
+    "discordInviteUrl": "www.testurl.co.kr",
+    "nickname": "테스트2",
+    "password": "1234"
+}
+
+### 그룹 수정
+PATCH http://localhost:4000/groups/2
+Content-Type: application/json
+
+{
+    "name": "2번째등록(수정)",
+    "description": "그룹등록 테스트(수정)",
+    "photoUrl":"www.image.co.kr(수정)",
+    "goalRep": 90,
+    "discordWebhookUrl": "www.grouptest.com(수정)",
+    "discordInviteUrl": "www.testurl.co.kr(수정)",
+    "nickname": "테스트(수정)",
+    "password": "12345"
+}
+
+### 그룹 삭제
+DELETE http://localhost:4000/groups/3
+Content-Type: application/json
+
+### TAG 목록조회
+GET http://localhost:4000/tags
+
+### TAG 상세조회
+GET http://localhost:4000/tags/1

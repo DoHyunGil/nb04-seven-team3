@@ -16,6 +16,8 @@ class LikesController {
 
       // 트랜잭션으로 좋아요 + 추천수 증가
       const result = await prisma.$transaction(async (tx) => {
+        /*
+        // 개선 후 수정 예정
         // 중복 좋아요 방지
         const existing = await tx.like.findUnique({
           where: { groupId_participantId: { groupId, participantId } },
@@ -24,6 +26,7 @@ class LikesController {
         if (existing) {
           return { message: "이미 좋아요가 추가된 상태입니다.", like: existing };
         }
+        */
 
         // 좋아요 생성
         const like = await tx.like.create({
@@ -124,5 +127,6 @@ class LikesController {
 }
 
 export default new LikesController();
+
 
 

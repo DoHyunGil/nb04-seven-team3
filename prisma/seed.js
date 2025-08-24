@@ -3,8 +3,8 @@ import recordSeed from "./record.seed.js";
 import userSeed from "./user.seed.js";
 
 async function main() {
-    //await groupSeed();
-    //await userSeed();
+    await groupSeed();
+    await userSeed();
     await recordSeed();
 
    /* 

@@ -13,10 +13,4 @@ router.get("/:groupId/record", recordsController.getRecordList);
 router.get("/:groupId/record/", recordsController.getRecord);
 
 
-router.get("/:groupId/record/rank",RecordsController.getRankRecords);
-
-router.get("/:groupId/record", RecordsController.getRecordList);
-
-router.get("/:groupId/record/", RecordsController.getRecord);
-
 export default router;

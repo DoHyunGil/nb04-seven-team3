@@ -31,21 +31,10 @@ async function recordSeed() {
         skipDuplicates : true
   })
   console.log(recordWithGroupId)
-  //console.log(JSON.stringify(records))
-  //if(records.photos.length){
-  //for(const record of records.photos){
-    //await prisma.photo.create({
-       ////data: {
-          //url,
-          //recordId: record.id
-        //}
-      //});
-   // }
-  //}
     //for (const url of records.photos) 
-    await prisma.record.findMany({
-        where: groupId
-    })
+    ///await prisma.record.findMany({
+        //where: groupId
+    //})
 }
 
 export default recordSeed;

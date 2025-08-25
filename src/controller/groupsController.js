@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -9,9 +9,9 @@ class GroupsController {
       const {
         page = 1,
         limit = 10,
-        order = 'desc',
-        orderBy = 'createdAt',
-        search = '',
+        order = "desc",
+        orderBy = "createdAt",
+        search = "",
       } = req.query;
 
       const pageNum = Number(page);
@@ -20,7 +20,7 @@ class GroupsController {
         ? {
             name: {
               contains: search,
-              mode: 'insensitive',
+              mode: "insensitive",
             },
           }
         : {};
@@ -29,43 +29,34 @@ class GroupsController {
         skip: (pageNum - 1) * limitNum,
         take: limitNum,
         orderBy:
-          orderBy === 'participantCount'
-            ? { participant: { _count: order } }
+          orderBy === "participantCount"
+            ? { _count: { participant: order } }
             : { [orderBy]: order },
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          photoUrl: true,
-          goalRep: true,
-          discordWebhookUrl: true,
-          discordInviteUrl: true,
-          likeCount: true,
-          createdAt: true,
-          updatedAt: true,
-          badgeYn: true,
-          nickname: true,
-        },
-        tags: {
-          select: {
-            tag: {
-              select: {
-                name: true,
+        include: {
+          _count: {
+            select: { participant: true },
+          },
+          tags: {
+            select: {
+              tag: {
+                select: {
+                  name: true,
+                },
               },
             },
           },
-        },
-        participant: {
-          select: {
-            id: true,
-            nickname: true,
-            createdAt: true,
-            updatedAt: true,
+          participant: {
+            select: {
+              id: true,
+              nickname: true,
+              createdAt: true,
+              updatedAt: true,
+            },
           },
         },
       });
       //response body 평탄화
-      const result = data.map((groups) => ({
+      const result = data.map(({ _count, ...groups }) => ({
         id: groups.id,
         name: groups.name,
         description: groups.description,
@@ -78,21 +69,22 @@ class GroupsController {
         owner: {
           id: groups.id,
           nickname: groups.nickname,
-          createdAt: groups.createdAt.getTime(),
-          updatedAt: groups.updatedAt.getTime(),
+          createdAt: groups.createdAt.toISOString(),
+          updatedAt: groups.updatedAt.toISOString(),
         },
         participants: groups.participant.map((p) => ({
           id: p.id,
           nickname: p.nickname,
-          createdAt: p.createdAt.getTime(),
-          updatedAt: p.updatedAt.getTime(),
+          createdAt: p.createdAt.toISOString(),
+          updatedAt: p.updatedAt.toISOString(),
         })),
-        createdAt: groups.createdAt.getTime(),
-        updatedAt: groups.updatedAt.getTime(),
+        createdAt: groups.createdAt.toISOString(),
+        updatedAt: groups.updatedAt.toISOString(),
         badges: groups.badgeYn,
       }));
 
-      res.json({ data: result, total: result.length });
+      const total = await prisma.group.count({ where });
+      res.json({ data: result, total });
     } catch (error) {
       res.status(500).json({ error: `서버 오류 ${error.message}` });
     }
@@ -103,23 +95,11 @@ class GroupsController {
     try {
       const groupId = Number(req.params.groupId);
       if (isNaN(groupId)) {
-        return res.status(400).json({ error: 'groupId가 유효하지 않습니다.' });
+        return res.status(400).json({ error: "groupId가 유효하지 않습니다." });
       }
       const data = await prisma.group.findUnique({
         where: { id: groupId },
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          photoUrl: true,
-          goalRep: true,
-          discordWebhookUrl: true,
-          discordInviteUrl: true,
-          likeCount: true,
-          createdAt: true,
-          updatedAt: true,
-          badgeYn: true,
-          nickname: true,
+        include: {
           tags: {
             select: {
               tag: {
@@ -141,7 +121,7 @@ class GroupsController {
       });
 
       if (!data) {
-        return res.status(404).json({ error: '그룹을 찾을 수 없습니다.' });
+        return res.status(404).json({ error: "그룹을 찾을 수 없습니다." });
       }
 
       //response body 평탄화
@@ -158,17 +138,17 @@ class GroupsController {
         owner: {
           id: data.id,
           nickname: data.nickname,
-          createdAt: data.createdAt.getTime(),
-          updatedAt: data.updatedAt.getTime(),
+          createdAt: data.createdAt.toISOString(),
+          updatedAt: data.updatedAt.toISOString(),
         },
         participants: data.participant.map((p) => ({
           id: p.id,
           nickname: p.nickname,
-          createdAt: p.createdAt.getTime(),
-          updatedAt: p.updatedAt.getTime(),
+          createdAt: p.createdAt.toISOString(),
+          updatedAt: p.updatedAt.toISOString(),
         })),
-        createdAt: data.createdAt.getTime(),
-        updatedAt: data.updatedAt.getTime(),
+        createdAt: data.createdAt.toISOString(),
+        updatedAt: data.updatedAt.toISOString(),
         badges: data.badgeYn,
       };
 
@@ -184,7 +164,7 @@ class GroupsController {
    *  @param : {*} RequestBody
    */
   createGroupRecord = async (req, res) => {
-    console.log('groupsController createGroupRecord()..');
+    console.log("groupsController createGroupRecord()..");
 
     try {
       const {
@@ -214,7 +194,7 @@ class GroupsController {
       ) {
         return res
           .status(400)
-          .json({ error: '필수 작성 내용이 누락되었습니다.' });
+          .json({ error: "필수 작성 내용이 누락되었습니다." });
       }
 
       //nickname 중복방지 체크
@@ -225,7 +205,7 @@ class GroupsController {
         select: { id: true, nickname: true, password: true },
       });
       if (isNaN(dupNickname)) {
-        return res.status(400).json({ error: '중복된 닉네임이 존재합니다.' });
+        return res.status(400).json({ error: "중복된 닉네임이 존재합니다." });
       }
 
       //그룹 생성
@@ -244,23 +224,24 @@ class GroupsController {
             discordInviteUrl,
             nickname,
             password,
-          }
+          },
         });
-        console.log(`group: ${group.id}, nickname: ${group.nickname}, password: ${group.password}`);
+        console.log(
+          `group: ${group.id}, nickname: ${group.nickname}, password: ${group.password}`
+        );
         //2. 참가자 등록(그룹오너) : 그룹생성시 사용했던 nickname, password 자동부과
         const participant = await tx.participant.create({
           data: {
             nickname: group.nickname,
             password: group.password,
-            groupId: group.id
-          }
+            groupId: group.id,
+          },
         });
       });
-      res.status(200).send( {message: '그룹생성 되었습니다!'} );
-
+      res.status(200).send({ message: "그룹생성 되었습니다!" });
     } catch (error) {
       console.log(error);
-      res.status(400).json({ error: '그룹등록에 실패했습니다!' });
+      res.status(400).json({ error: "그룹등록에 실패했습니다!" });
     }
   };
 
@@ -299,7 +280,7 @@ class GroupsController {
       ) {
         return res
           .status(400)
-          .json({ error: '필수 작성 내용이 누락되었습니다.' });
+          .json({ error: "필수 작성 내용이 누락되었습니다." });
       }
 
       console.log(`groupsController updateGroupRecord()..  groupId:${id} `);
@@ -323,7 +304,7 @@ class GroupsController {
       res.status(200).send(group);
     } catch (error) {
       console.log(error);
-      res.status(400).json({ error: '그룹수정에 실패했습니다!' });
+      res.status(400).json({ error: "그룹수정에 실패했습니다!" });
     }
   };
 
@@ -333,7 +314,6 @@ class GroupsController {
    *  @param : {*} RequestBody
    */
   deleteGroupRecord = async (req, res) => {
-
     try {
       const id = parseInt(req.params.id);
       console.log(`groupsController deleteGroupRecord()..  groupId:${id} `);
@@ -341,18 +321,17 @@ class GroupsController {
       const result = await prisma.$transaction(async (tx) => {
         //1. 참가자삭제
         const participant = await tx.participant.deleteMany({
-          where: { groupId: id }
-        })
+          where: { groupId: id },
+        });
         //2. 그룹삭제
         const group = await tx.group.delete({
-          where: { id }
+          where: { id },
         });
       });
-      res.status(200).send( {message: '그룹삭제 되었습니다!'} );
-
+      res.status(200).send({ message: "그룹삭제 되었습니다!" });
     } catch (error) {
       console.log(error);
-      res.status(400).json({ error: '그룹삭제에 실패했습니다!' });
+      res.status(400).json({ error: "그룹삭제에 실패했습니다!" });
     }
   };
 }

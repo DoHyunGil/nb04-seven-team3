@@ -76,17 +76,17 @@ class GroupsController {
         owner: {
           id: groups.id,
           nickname: groups.nickname,
-          createdAt: groups.createdAt.toISOString(),
-          updatedAt: groups.updatedAt.toISOString(),
+          createdAt: groups.createdAt,
+          updatedAt: groups.updatedAt,
         },
         participants: groups.participant.map((p) => ({
           id: p.id,
           nickname: p.nickname,
-          createdAt: p.createdAt.toISOString(),
-          updatedAt: p.updatedAt.toISOString(),
+          createdAt: p.createdAt,
+          updatedAt: p.updatedAt,
         })),
-        createdAt: groups.createdAt.toISOString(),
-        updatedAt: groups.updatedAt.toISOString(),
+        createdAt: groups.createdAt,
+        updatedAt: groups.updatedAt,
         badges: groups.badgeYn,
       }));
 
@@ -142,18 +142,18 @@ class GroupsController {
         owner: {
           id: data.id,
           nickname: data.nickname,
-          createdAt: data.createdAt.toISOString(),
-          updatedAt: data.updatedAt.toISOString(),
+          createdAt: data.createdAt,
+          updatedAt: data.updatedAt,
         },
         participants: data.participant.map((p) => ({
           id: p.id,
           nickname: p.nickname,
-          createdAt: p.createdAt.toISOString(),
-          updatedAt: p.updatedAt.toISOString(),
+          createdAt: p.createdAt,
+          updatedAt: p.updatedAt,
         })),
-        createdAt: data.createdAt.toISOString(),
-        updatedAt: data.updatedAt.toISOString(),
-        badges: data.badgeYn,
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
+        badges: Array.isArray(data.badges) ? data.badges : [],
       };
 
       res.status(200).json(result);

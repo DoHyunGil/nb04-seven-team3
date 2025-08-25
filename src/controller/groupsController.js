@@ -338,6 +338,8 @@ class GroupsController {
       res.status(400).json({ error: "그룹삭제에 실패했습니다!" });
     }
   };
+
+
 }
 
 export default new GroupsController();

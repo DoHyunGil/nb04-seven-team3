@@ -3,6 +3,10 @@ import GroupsController from "../controller/groupsController.js";
 import recordsRouter from "./records.js";
 // import TagsController from "../controller/tagsController.js";
 
+
+import groupGetValidation from "../schemas/groups/group.get.schema.js";
+
+
 const router = express.Router();
 
 //records 라우팅
@@ -18,9 +22,9 @@ router.patch("/:id", GroupsController.updateGroupRecord);
 router.delete("/:id", GroupsController.deleteGroupRecord);
 
 //Group 목록 전체 조회
-router.get("/", GroupsController.getAllGroups);
+router.get("/", groupGetValidation, GroupsController.getAllGroups);
 
 //Group 목록 상세 조회
-router.get("/:groupId", GroupsController.getGroupById);
+router.get("/:groupId", groupGetValidation, GroupsController.getGroupById);
 
 export default router;

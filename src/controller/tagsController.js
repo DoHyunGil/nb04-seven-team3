@@ -67,7 +67,7 @@ class TagsController {
    */
   getTags = async (req, res) => {
     try{
-        const id = Number(req.params.id);
+      const id = Number(req.params.id);
         //zod적용
         const createInputId = z.number().min(1, { message: '태그ID는 0이상 이어야 합니다.' });
         const validInputData = createInputId.parse(id);

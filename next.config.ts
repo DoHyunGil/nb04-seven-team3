@@ -1,11 +1,11 @@
-import type { NextConfig } from 'next';
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-        source: '/groups/:groupId((?!/new).)*',
-        destination: '/groups/:groupId*/records',
+        source: "/groups/:groupId((?!/new).)*",
+        destination: "/groups/:groupId*/records",
         permanent: false,
       },
     ];
@@ -13,13 +13,17 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '3001',
+        protocol: "http",
+        hostname: "localhost",
+        port: "3001",
       },
       {
-        protocol: 'https',
-        hostname: 'sprint-be-project.s3.ap-northeast-2.amazonaws.com',
+        protocol: "https",
+        hostname: "sprint-be-project.s3.ap-northeast-2.amazonaws.com",
+      },
+      {
+        protocol: "https",
+        hostname: "via.placeholder.com",
       },
     ],
   },

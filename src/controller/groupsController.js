@@ -30,21 +30,12 @@ class GroupsController {
         take: limitNum,
         orderBy:
           orderBy === "participantCount"
-            ? { participant: { _count: order } }
+            ? { _count: { participant: order } }
             : { [orderBy]: order },
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          photoUrl: true,
-          goalRep: true,
-          discordWebhookUrl: true,
-          discordInviteUrl: true,
-          likeCount: true,
-          createdAt: true,
-          updatedAt: true,
-          badgeYn: true,
-          nickname: true,
+        include: {
+          _count: {
+            select: { participant: true },
+          },
           tags: {
             select: {
               tag: {
@@ -65,7 +56,7 @@ class GroupsController {
         },
       });
       //response body 평탄화
-      const result = data.map((groups) => ({
+      const result = data.map(({ _count, ...groups }) => ({
         id: groups.id,
         name: groups.name,
         description: groups.description,
@@ -78,21 +69,22 @@ class GroupsController {
         owner: {
           id: groups.id,
           nickname: groups.nickname,
-          createdAt: groups.createdAt.getTime(),
-          updatedAt: groups.updatedAt.getTime(),
+          createdAt: groups.createdAt.toISOString(),
+          updatedAt: groups.updatedAt.toISOString(),
         },
         participants: groups.participant.map((p) => ({
           id: p.id,
           nickname: p.nickname,
-          createdAt: p.createdAt.getTime(),
-          updatedAt: p.updatedAt.getTime(),
+          createdAt: p.createdAt.toISOString(),
+          updatedAt: p.updatedAt.toISOString(),
         })),
-        createdAt: groups.createdAt.getTime(),
-        updatedAt: groups.updatedAt.getTime(),
+        createdAt: groups.createdAt.toISOString(),
+        updatedAt: groups.updatedAt.toISOString(),
         badges: groups.badgeYn,
       }));
 
-      res.json({ data: result, total: result.length });
+      const total = await prisma.group.count({ where });
+      res.json({ data: result, total });
     } catch (error) {
       res.status(500).json({ error: `서버 오류 ${error.message}` });
     }
@@ -107,19 +99,7 @@ class GroupsController {
       }
       const data = await prisma.group.findUnique({
         where: { id: groupId },
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          photoUrl: true,
-          goalRep: true,
-          discordWebhookUrl: true,
-          discordInviteUrl: true,
-          likeCount: true,
-          createdAt: true,
-          updatedAt: true,
-          badgeYn: true,
-          nickname: true,
+        include: {
           tags: {
             select: {
               tag: {
@@ -158,17 +138,17 @@ class GroupsController {
         owner: {
           id: data.id,
           nickname: data.nickname,
-          createdAt: data.createdAt.getTime(),
-          updatedAt: data.updatedAt.getTime(),
+          createdAt: data.createdAt.toISOString(),
+          updatedAt: data.updatedAt.toISOString(),
         },
         participants: data.participant.map((p) => ({
           id: p.id,
           nickname: p.nickname,
-          createdAt: p.createdAt.getTime(),
-          updatedAt: p.updatedAt.getTime(),
+          createdAt: p.createdAt.toISOString(),
+          updatedAt: p.updatedAt.toISOString(),
         })),
-        createdAt: data.createdAt.getTime(),
-        updatedAt: data.updatedAt.getTime(),
+        createdAt: data.createdAt.toISOString(),
+        updatedAt: data.updatedAt.toISOString(),
         badges: data.badgeYn,
       };
 
@@ -244,20 +224,21 @@ class GroupsController {
             discordInviteUrl,
             nickname,
             password,
-          }
+          },
         });
-        console.log(`group: ${group.id}, nickname: ${group.nickname}, password: ${group.password}`);
+        console.log(
+          `group: ${group.id}, nickname: ${group.nickname}, password: ${group.password}`
+        );
         //2. 참가자 등록(그룹오너) : 그룹생성시 사용했던 nickname, password 자동부과
         const participant = await tx.participant.create({
           data: {
             nickname: group.nickname,
             password: group.password,
-            groupId: group.id
-          }
+            groupId: group.id,
+          },
         });
       });
-      res.status(200).send( {message: '그룹생성 되었습니다!'} );
-
+      res.status(200).send({ message: "그룹생성 되었습니다!" });
     } catch (error) {
       console.log(error);
       res.status(400).json({ error: "그룹등록에 실패했습니다!" });
@@ -333,7 +314,6 @@ class GroupsController {
    *  @param : {*} RequestBody
    */
   deleteGroupRecord = async (req, res) => {
-
     try {
       const id = parseInt(req.params.id);
       console.log(`groupsController deleteGroupRecord()..  groupId:${id} `);
@@ -341,22 +321,19 @@ class GroupsController {
       const result = await prisma.$transaction(async (tx) => {
         //1. 참가자삭제
         const participant = await tx.participant.deleteMany({
-          where: { groupId: id }
-        })
+          where: { groupId: id },
+        });
         //2. 그룹삭제
         const group = await tx.group.delete({
-          where: { id }
+          where: { id },
         });
       });
-      res.status(200).send( {message: '그룹삭제 되었습니다!'} );
-
+      res.status(200).send({ message: "그룹삭제 되었습니다!" });
     } catch (error) {
       console.log(error);
       res.status(400).json({ error: "그룹삭제에 실패했습니다!" });
     }
   };
-
-
 }
 
 export default new GroupsController();

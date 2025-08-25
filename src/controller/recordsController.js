@@ -4,68 +4,87 @@ const prisma = new PrismaClient();
 const allowedRanks = ["MONTHLY", "WEEKLY"];
 
 class RecordsController {
-  async getRecordList(req, res) {
-    const { nickname, page, limit, sortType, like } = req.query;
-
-    // Pagination
-    const pageNumber = Number(page) || 1;
-    const limitNumber = Number(limit) || 10;
-    const skip = (pageNumber - 1) * limitNumber;
+  async getRecordList(req, res, next) {
     const groupId = Number(req.params.groupId);
-
-    console.log(
-      typeof pageNumber,
-      typeof limitNumber,
-      typeof skip,
-      typeof groupId,
-      typeof like
-    );
-    console.log("Requested query: ", req.query);
-    console.log("Requseted data: ", req);
-    // Validation
-    if (skip < 0)
-      return res.status(400).json({
-        error: "Skip value cannot be negative",
-      });
-    if (like < 0)
-      return res.status(400).json({
-        error: "Like value cannot be negative",
-      });
-
-    const sortMap = {
-      latest: { createdAt: "desc" },
-      duration: { duration: "desc" },
-    };
+    const { page, limit, order, orderBy, serach } = req.query;
 
     try {
-      const uniqueGroup = await prisma.record.findUnique({
+      const group = prisma.group.findMany({
         where: { id: groupId },
-      });
-      if (!uniqueGroup)
-        return res.status(400).json({ error: "Group does not exist" });
-
-      const recordList = await prisma.record.findMany({
-        where: {
-          groupId,
-          ...(nickname
-            ? { nickname: { contains: nickname, mode: "insensitive" } }
-            : {}),
-        },
-        limit: limitNumber,
-        skip,
-        orderBy: sortMap[sortType] ? [sortMap[sortType]] : [],
+        include: { records: true },
       });
 
-      if (recordList.length === 0) return res.status(200).json([]);
       return res.status(200).json({
-        message: "Record list retrieved successfully",
-        data: recordList,
+        data: group.records,
+        total: 0,
       });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json(error.message);
+    } catch (err) {
+      res.status(400).send({ message: "error" });
     }
   }
+
+  // async getRecordList(req, res) {
+  //   const { nickname, page, limit, sortType, like } = req.query;
+
+  //   // Pagination
+  //   const pageNumber = Number(page) || 1;
+  //   const limitNumber = Number(limit) || 10;
+  //   const skip = (pageNumber - 1) * limitNumber;
+  //   const groupId = Number(req.params.groupId);
+
+  //   console.log(
+  //     typeof pageNumber,
+  //     typeof limitNumber,
+  //     typeof skip,
+  //     typeof groupId,
+  //     typeof like
+  //   );
+  //   console.log("Requested query: ", req.query);
+  //   console.log("Requseted data: ", req);
+  //   // Validation
+  //   if (skip < 0)
+  //     return res.status(400).json({
+  //       error: "Skip value cannot be negative",
+  //     });
+  //   if (like < 0)
+  //     return res.status(400).json({
+  //       error: "Like value cannot be negative",
+  //     });
+
+  //   const sortMap = {
+  //     latest: { createdAt: "desc" },
+  //     duration: { duration: "desc" },
+  //   };
+
+  //   try {
+  //     const uniqueGroup = await prisma.record.findUnique({
+  //       where: { id: groupId },
+  //     });
+  //     if (!uniqueGroup)
+  //       return res.status(400).json({ error: "Group does not exist" });
+
+  //     const recordList = await prisma.record.findMany({
+  //       where: {
+  //         groupId,
+  //         ...(nickname
+  //           ? { nickname: { contains: nickname, mode: "insensitive" } }
+  //           : {}),
+  //       },
+  //       limit: limitNumber,
+  //       skip,
+  //       orderBy: sortMap[sortType] ? [sortMap[sortType]] : [],
+  //     });
+
+  //     if (recordList.length === 0) return res.status(200).json([]);
+  //     return res.status(200).json({
+  //       message: "Record list retrieved successfully",
+  //       data: recordList,
+  //     });
+  //   } catch (error) {
+  //     console.error(error);
+  //     res.status(500).json(error.message);
+  //   }
+  // }
 
   getPreviousWeekRange(year, month) {
     const firstOfMonth = new Date(year, month - 1, 1);

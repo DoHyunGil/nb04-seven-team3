@@ -1,8 +1,12 @@
 import express from "express";
 import GroupsController from "../controller/groupsController.js";
+import recordsRouter from "./records.js";
 // import TagsController from "../controller/tagsController.js";
 
 const router = express.Router();
+
+//records 라우팅
+router.use("/:groupId/records", recordsRouter);
 
 //Group 생성
 router.post("/", GroupsController.createGroupRecord);

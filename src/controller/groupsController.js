@@ -6,16 +6,15 @@ class GroupsController {
   //그룹 목록 조회
   async getAllGroups(req, res) {
     try {
-      const {
-        page = 1,
-        limit = 10,
-        order = "desc",
-        orderBy = "createdAt",
-        search = "",
-      } = req.query;
+      const { page, limit, order, orderBy, search } = req.validatedQuery;
 
-      const pageNum = Number(page);
-      const limitNum = Number(limit);
+      const DEFAULT_PAGE = 1;
+      const MIN_LIMIT = 1;
+      const MAX_LIMIT = 10;
+
+      const pageNum = Math.max(page, DEFAULT_PAGE);
+      const limitNum = Math.min(Math.max(limit, MIN_LIMIT), MAX_LIMIT);
+
       const where = search
         ? {
             name: {
@@ -24,6 +23,14 @@ class GroupsController {
             },
           }
         : {};
+
+      const total = await prisma.group.count({ where });
+      if ((pageNum - 1) * limitNum >= total) {
+        return res
+          .status(400)
+          .json({ error: "요청한 페이지가 존재하지 않습니다." });
+      }
+
       const data = await prisma.group.findMany({
         where,
         skip: (pageNum - 1) * limitNum,
@@ -83,7 +90,6 @@ class GroupsController {
         badges: groups.badgeYn,
       }));
 
-      const total = await prisma.group.count({ where });
       res.json({ data: result, total });
     } catch (error) {
       res.status(500).json({ error: `서버 오류 ${error.message}` });
@@ -93,10 +99,8 @@ class GroupsController {
   // 그룹 상세 조회
   async getGroupById(req, res) {
     try {
-      const groupId = Number(req.params.groupId);
-      if (isNaN(groupId)) {
-        return res.status(400).json({ error: "groupId가 유효하지 않습니다." });
-      }
+      const groupId = req.validatedParams.groupId;
+
       const data = await prisma.group.findUnique({
         where: { id: groupId },
         include: {

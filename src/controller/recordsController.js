@@ -22,15 +22,11 @@ class RecordsController {
     console.log("Requested query: ", req.query);
     console.log("Requseted data: ", req);
     // Validation
-    if (skip < 0)
-      return res.status(400).json({
-        error: "Skip value cannot be negative",
-      });
-    if (like < 0)
-      return res.status(400).json({
-        error: "Like value cannot be negative",
-      });
-
+    const validation_negative = (skip < 0 ||  like < 0);
+    if (validation_negative ) return res.status(400).json({
+      error:`Invalid value detected : skip = ${skip}, like = ${like}. value cannot be negative `
+    });
+    
     const sortMap = {
       latest: { createdAt: "desc" },
       duration: { duration: "desc" },

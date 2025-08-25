@@ -53,6 +53,17 @@ async function main() {
       },
     },
   });
+
+  /*
+    // 기존 데이터 삭제
+  await prisma.group.deleteMany();
+
+  // 목 데이터 삽입
+  await prisma.group.createMany({
+    data: GROUP,
+    skipDuplicates: true,
+  });
+  */
 }
 
 main()

@@ -1,6 +1,7 @@
 import express from "express";
 import GroupsController from "../controller/groupsController.js";
 // import TagsController from "../controller/tagsController.js";
+import groupGetValidation from "../schemas/groups/group.get.schema.js";
 
 const router = express.Router();
 
@@ -14,9 +15,9 @@ router.patch("/:id", GroupsController.updateGroupRecord);
 router.delete("/:id", GroupsController.deleteGroupRecord);
 
 //Group 목록 전체 조회
-router.get("/", GroupsController.getAllGroups);
+router.get("/", groupGetValidation, GroupsController.getAllGroups);
 
 //Group 목록 상세 조회
-router.get("/:groupId", GroupsController.getGroupById);
+router.get("/:groupId", groupGetValidation, GroupsController.getGroupById);
 
 export default router;

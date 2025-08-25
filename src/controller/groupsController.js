@@ -14,8 +14,8 @@ class GroupsController {
         search = "",
       } = req.query;
 
-      const pageNum = Number(page);
-      const limitNum = Number(limit);
+      const pageNum = Math.max(page, 1);
+      const limitNum = Math.min(Math.max(limit, 1), 10);
       const where = search
         ? {
             name: {
@@ -24,6 +24,14 @@ class GroupsController {
             },
           }
         : {};
+
+      const total = await prisma.group.count({ where });
+      if ((pageNum - 1) * limitNum >= total) {
+        return res
+          .status(400)
+          .json({ error: "요청한 페이지가 존재하지 않습니다." });
+      }
+
       const data = await prisma.group.findMany({
         where,
         skip: (pageNum - 1) * limitNum,
@@ -83,7 +91,6 @@ class GroupsController {
         badges: groups.badgeYn,
       }));
 
-      const total = await prisma.group.count({ where });
       res.json({ data: result, total });
     } catch (error) {
       res.status(500).json({ error: `서버 오류 ${error.message}` });
@@ -93,10 +100,7 @@ class GroupsController {
   // 그룹 상세 조회
   async getGroupById(req, res) {
     try {
-      const groupId = Number(req.params.groupId);
-      if (isNaN(groupId)) {
-        return res.status(400).json({ error: "groupId가 유효하지 않습니다." });
-      }
+      const groupId = req.params.groupId;
       const data = await prisma.group.findUnique({
         where: { id: groupId },
         include: {

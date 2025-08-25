@@ -14,7 +14,6 @@ app.use("/images", express.static(path.join(process.cwd(), "uploads")));
 app.use("/images", imageRouter);
 
 app.use("/groups", groupRouters);
-app.use("/records", recordsRouter);
 app.use("/tags", tagsRouters);
 
 app.listen(PORT, () => {

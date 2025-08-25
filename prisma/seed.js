@@ -58,6 +58,7 @@ async function main() {
     // 기존 데이터 삭제
   await prisma.group.deleteMany();
 
+<<<<<<< HEAD
   const user = await prisma.participant.create({
     data: {
       nickname: "TEST",
@@ -90,6 +91,12 @@ async function main() {
         connect: { id: group.id },
       },
     },
+=======
+  // 목 데이터 삽입
+  await prisma.group.createMany({
+    data: GROUP,
+    skipDuplicates: true,
+>>>>>>> ef685ea (feat: seed.js 수정)
   });
   */
 }

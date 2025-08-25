@@ -8,8 +8,13 @@ class GroupsController {
     try {
       const { page, limit, order, orderBy, search } = req.validatedQuery;
 
-      const pageNum = Math.max(page, 1);
-      const limitNum = Math.min(Math.max(limit, 1), 10);
+      const DEFAULT_PAGE = 1;
+      const MIN_LIMIT = 1;
+      const MAX_LIMIT = 10;
+
+      const pageNum = Math.max(page, DEFAULT_PAGE);
+      const limitNum = Math.min(Math.max(limit, MIN_LIMIT), MAX_LIMIT);
+
       const where = search
         ? {
             name: {
@@ -95,6 +100,7 @@ class GroupsController {
   async getGroupById(req, res) {
     try {
       const groupId = req.validatedParams.groupId;
+
       const data = await prisma.group.findUnique({
         where: { id: groupId },
         include: {

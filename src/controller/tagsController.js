@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { z } from "zod";
 
 const prisma = new PrismaClient();
 
@@ -66,11 +67,15 @@ class TagsController {
    */
   getTags = async (req, res) => {
     try{
-        const id = Number(req.params.id);
-        if( isNaN(id) ){
-          return res.status(400).json();
+      const id = Number(req.params.id);
+        //zod적용
+        const createInputId = z.number().min(1, { message: '태그ID는 0이상 이어야 합니다.' });
+        const validInputData = createInputId.parse(id);
+        console.log(`[TagsController] getTags  id: ${validInputData}`);
+
+        if( isNaN(validInputData) ){
+          return res.status(400).json( {message: '태그ID값이 없습니다.'} );
         }
-        console.log(`[TagsController] getTags  id: ${id}`);
         const tags = await prisma.tag.findFirst({
             where: { id },
         });

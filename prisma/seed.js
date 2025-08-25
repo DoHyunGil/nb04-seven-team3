@@ -4,7 +4,58 @@ import { GROUP } from "./mock.js";
 const prisma = new PrismaClient();
 
 async function main() {
-  // 기존 데이터 삭제
+  const group = await prisma.group.create({
+    data: {
+      name: "NAME",
+      description: "DESC",
+      photoUrl: "",
+      goalRep: 123,
+      likeCount: 456,
+      badgeYn: false,
+      point: 789,
+      discordWebhookUrl: "",
+      discordInviteUrl: "",
+      nickname: "TEST",
+      password: "PASSWD",
+    },
+  });
+
+  const user = await prisma.participant.create({
+    data: {
+      nickname: "TEST",
+      password: "PASSWD",
+      group: {
+        connect: { id: group.id },
+      },
+    },
+  });
+
+  prisma.group.update({
+    where: { id: group.id },
+    data: {
+      participant: {
+        connect: { id: user.id },
+      },
+    },
+  });
+
+  const record = await prisma.record.create({
+    data: {
+      type: "RUN",
+      description: "RECORD_DESC",
+      duration: 111,
+      distance: 1123.123123,
+      author: {
+        connect: { id: user.id },
+      },
+      group: {
+        connect: { id: group.id },
+      },
+    },
+  });
+
+  /*
+    // 기존 데이터 삭제
   await prisma.group.deleteMany();
 
   // 목 데이터 삽입
@@ -12,6 +63,7 @@ async function main() {
     data: GROUP,
     skipDuplicates: true,
   });
+  */
 }
 
 main()

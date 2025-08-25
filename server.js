@@ -1,5 +1,6 @@
 import express from "express";
 import groupRouters from "./src/routes/groups.js";
+import likesRouter from "./src/routes/likes.js";
 import recordsRouter from "./src/routes/records.js";
 import imageRouter from "./src/routes/images.js";
 import path from "path";
@@ -12,9 +13,11 @@ app.use(express.json());
 
 app.use("/images", express.static(path.join(process.cwd(), "uploads")));
 app.use("/images", imageRouter);
-
 app.use("/groups", groupRouters);
+app.use("/groups", likesRouter);
+app.use("/groups", recordsRouter);
 app.use("/tags", tagsRouters);
+
 
 app.listen(PORT, () => {
   console.log("server running");

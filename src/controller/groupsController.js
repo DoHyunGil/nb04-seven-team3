@@ -6,13 +6,7 @@ class GroupsController {
   //그룹 목록 조회
   async getAllGroups(req, res) {
     try {
-      const {
-        page = 1,
-        limit = 10,
-        order = "desc",
-        orderBy = "createdAt",
-        search = "",
-      } = req.query;
+      const { page, limit, order, orderBy, search } = req.validatedQuery;
 
       const pageNum = Math.max(page, 1);
       const limitNum = Math.min(Math.max(limit, 1), 10);
@@ -100,7 +94,7 @@ class GroupsController {
   // 그룹 상세 조회
   async getGroupById(req, res) {
     try {
-      const groupId = req.params.groupId;
+      const groupId = req.validatedParams.groupId;
       const data = await prisma.group.findUnique({
         where: { id: groupId },
         include: {

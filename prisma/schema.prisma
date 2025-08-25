@@ -24,6 +24,12 @@ enum RankDuration {
   WEEKLY
 }
 
+enum BadgeType {
+  PARTICIPATION_10
+  RECORD_100
+  LIKE_100
+}
+
 model Group {
   id                Int                @id @default(autoincrement())
   name              String            
@@ -41,6 +47,7 @@ model Group {
   ranks             Rank[]
   tags              ActivityTag[]
   records           Record[]
+  badges            Badge[]            @relation("GroupBadges")
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
 }
@@ -120,4 +127,11 @@ model Rank {
   createdAt     DateTime     @default(now())
 
   @@unique([groupId, participantId, duration])
+}
+
+model Badge {
+  id            Int          @id @default(autoincrement())
+  type          BadgeType    @unique
+  name          String
+  groups        Group[]      @relation("GroupBadges")
 }

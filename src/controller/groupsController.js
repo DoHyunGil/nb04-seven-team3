@@ -169,6 +169,7 @@ class GroupsController {
    */
   createGroupRecord = async (req, res) => {
     console.log("groupsController createGroupRecord()..");
+    const resultBody = {};
 
     try {
       const {
@@ -229,9 +230,6 @@ class GroupsController {
             password: ownerPassword,
           },
         });
-        console.log(
-          `group: ${group.id}, nickname: ${group.nickname}, password: ${group.password}`
-        );
         //2. 참가자 등록(그룹오너) : 그룹생성시 사용했던 nickname, password 자동부과
         const participant = await tx.participant.create({
           data: {
@@ -240,8 +238,14 @@ class GroupsController {
             groupId: group.id,
           },
         });
+        group['groupId'] = group.id;
+        return group;
       });
-      res.status(200).send({ message: "그룹생성 되었습니다!" });
+      //Response Body 전송
+      console.log('resultBody=> ', JSON.stringify(result));
+      return res.status(201).json(result);
+      // res.status(201).send({message:'그룹등록 성공했습니다.'});
+
     } catch (error) {
       console.log(error);
       res.status(400).json({ error: "그룹등록에 실패했습니다!" });

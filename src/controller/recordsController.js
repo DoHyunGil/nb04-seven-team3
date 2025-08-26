@@ -258,7 +258,7 @@ class RecordsController {
     }
   }
 
-  createRecord = async (req, res) => {
+createRecord = async (req, res) => {
     console.log(req.body);
     const groupIdNum = Number(req.params.groupId); // groupId 문자열 -> 숫자 변환
     const {
@@ -343,13 +343,9 @@ class RecordsController {
           description,
           duration: time,
           distance,
-          authorId: 1,
+          //photos: photosArray,
+          authorId: participant.id,
           groupId: groupIdNum,
-          /*
-          photos: {
-            create: photosArray.map((url) => ({ photos: [url] })),
-          },
-          */
         },
         include: { author: true },
       });
@@ -364,6 +360,7 @@ class RecordsController {
         time: newRecord.duration,
         distance: newRecord.distance,
         photos: [],
+        //photos: newRecord.photos,  << DB에 저장된 string[], 교체 예정.
         author: {
           id: newRecord.author.id,
           nickname: newRecord.author.nickname,
@@ -377,3 +374,4 @@ class RecordsController {
 }
 
 export default new RecordsController();
+

@@ -174,27 +174,26 @@ class GroupsController {
       const {
         name,
         description,
-        photoUrl,
+        photoUrl = '',
         goalRep,
         likeCount = 0,
         badgeYn = false,
         point = 0,
         discordWebhookUrl,
         discordInviteUrl,
-        nickname,
-        password,
+        ownerNickname,
+        ownerPassword,
       } = req.body;
 
       //필수값 검증
       if (
         !name ||
         !description ||
-        !photoUrl ||
         !goalRep ||
         !discordWebhookUrl ||
         !discordInviteUrl ||
-        !nickname ||
-        !password
+        !ownerNickname ||
+        !ownerPassword
       ) {
         return res
           .status(400)
@@ -204,7 +203,7 @@ class GroupsController {
       //nickname 중복방지 체크
       const dupNickname = await prisma.group.findMany({
         where: {
-          nickname: nickname,
+          nickname: ownerNickname,
         },
         select: { id: true, nickname: true, password: true },
       });
@@ -226,8 +225,8 @@ class GroupsController {
             point,
             discordWebhookUrl,
             discordInviteUrl,
-            nickname,
-            password,
+            nickname: ownerNickname,
+            password: ownerPassword,
           },
         });
         console.log(
@@ -260,27 +259,26 @@ class GroupsController {
       const {
         name,
         description,
-        photoUrl,
+        photoUrl = '',
         goalRep,
         likeCount = 0,
         badgeYn = false,
         point = 0,
         discordWebhookUrl,
         discordInviteUrl,
-        nickname,
-        password,
+        ownerNickname,
+        ownerPassword,
       } = req.body;
 
       //필수값 검증
       if (
         !name ||
         !description ||
-        !photoUrl ||
         !goalRep ||
         !discordWebhookUrl ||
         !discordInviteUrl ||
-        !nickname ||
-        !password
+        !ownerNickname ||
+        !ownerPassword
       ) {
         return res
           .status(400)
@@ -301,8 +299,8 @@ class GroupsController {
           point,
           discordWebhookUrl,
           discordInviteUrl,
-          nickname,
-          password,
+          nickname: ownerNickname,
+          password: ownerPassword,
         },
       });
       res.status(200).send(group);

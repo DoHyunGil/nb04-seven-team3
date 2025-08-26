@@ -50,6 +50,18 @@ async function main() {
     },
   });
 
+  for (let i = 4; i <= 10; i++) {
+    await prisma.participant.create({
+      data: {
+        nickname: `${i}등유저`,
+        password: "PASSWD",
+        group: {
+          connect: { id: group.id },
+        },
+      },
+    });
+  }
+
   prisma.group.update({
     where: { id: group.id },
     data: {

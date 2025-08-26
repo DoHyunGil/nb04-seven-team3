@@ -6,8 +6,8 @@ const prisma = new PrismaClient();
 async function main() {
   const group = await prisma.group.create({
     data: {
-      name: "NAME",
-      description: "DESC",
+      name: "랭크 테스트",
+      description: "랭크 테스트 할 곳",
       photoUrl: "",
       goalRep: 123,
       likeCount: 456,
@@ -20,9 +20,29 @@ async function main() {
     },
   });
 
-  const user = await prisma.participant.create({
+  const user1 = await prisma.participant.create({
     data: {
-      nickname: "TEST",
+      nickname: "2등유저",
+      password: "PASSWD",
+      group: {
+        connect: { id: group.id },
+      },
+    },
+  });
+
+  const user2 = await prisma.participant.create({
+    data: {
+      nickname: "3등유저",
+      password: "PASSWD",
+      group: {
+        connect: { id: group.id },
+      },
+    },
+  });
+
+  const user3 = await prisma.participant.create({
+    data: {
+      nickname: "1등유저",
       password: "PASSWD",
       group: {
         connect: { id: group.id },
@@ -34,69 +54,71 @@ async function main() {
     where: { id: group.id },
     data: {
       participant: {
-        connect: { id: user.id },
+        connect: [{ id: user1.id }, { id: user2.id }, { id: user3.id }],
       },
     },
   });
 
-  const record = await prisma.record.create({
-    data: {
-      type: "RUN",
-      description: "RECORD_DESC",
-      duration: 111,
-      distance: 1123.123123,
-      author: {
-        connect: { id: user.id },
+  //레코드 생성 루프
+  for (let i = 0; i < 5; i++) {
+    await prisma.record.create({
+      data: {
+        type: "RUN",
+        description: "RECORD_DESC",
+        duration: 111,
+        distance: 1123.123123,
+        author: {
+          connect: { id: user3.id },
+        },
+        group: {
+          connect: { id: group.id },
+        },
       },
-      group: {
-        connect: { id: group.id },
+    });
+  }
+
+  for (let i = 0; i < 3; i++) {
+    await prisma.record.create({
+      data: {
+        type: "RUN",
+        description: "RECORD_DESC",
+        duration: 111,
+        distance: 1123.123123,
+        author: {
+          connect: { id: user1.id },
+        },
+        group: {
+          connect: { id: group.id },
+        },
       },
-    },
-  });
+    });
+  }
+
+  for (let i = 0; i < 1; i++) {
+    await prisma.record.create({
+      data: {
+        type: "RUN",
+        description: "RECORD_DESC",
+        duration: 111,
+        distance: 1123.123123,
+        author: {
+          connect: { id: user2.id },
+        },
+        group: {
+          connect: { id: group.id },
+        },
+      },
+    });
+  }
 
   /*
     // 기존 데이터 삭제
   await prisma.group.deleteMany();
 
-<<<<<<< HEAD
-  const user = await prisma.participant.create({
-    data: {
-      nickname: "TEST",
-      password: "PASSWD",
-      group: {
-        connect: { id: group.id },
-      },
-    },
-  });
-
-  prisma.group.update({
-    where: { id: group.id },
-    data: {
-      participant: {
-        connect: { id: user.id },
-      },
-    },
-  });
-
-  const record = await prisma.record.create({
-    data: {
-      type: "RUN",
-      description: "RECORD_DESC",
-      duration: 111,
-      distance: 1123.123123,
-      author: {
-        connect: { id: user.id },
-      },
-      group: {
-        connect: { id: group.id },
-      },
-    },
-=======
   // 목 데이터 삽입
   await prisma.group.createMany({
     data: GROUP,
     skipDuplicates: true,
->>>>>>> ef685ea (feat: seed.js 수정)
   });
   */
 }

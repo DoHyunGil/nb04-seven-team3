@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { checkAndApplyBadge } from "./badgesController";
 
 const prisma = new PrismaClient();
 
@@ -60,6 +61,7 @@ class GroupsController {
               updatedAt: true,
             },
           },
+          badges: true,
         },
       });
       //response body 평탄화
@@ -87,7 +89,7 @@ class GroupsController {
         })),
         createdAt: groups.createdAt.getTime(),
         updatedAt: groups.updatedAt.getTime(),
-        badges: groups.badgeYn,
+        badges: Array.isArray(groups.badges) ? groups.badges : [],
       }));
 
       res.json({ data: result, total });
@@ -121,11 +123,46 @@ class GroupsController {
               updatedAt: true,
             },
           },
+          records: {
+            select: {
+              likes: { select: { id: true } },
+            },
+          },
+          _count: {
+            select: { participant: true, records: true },
+          },
+          badges: true,
         },
       });
 
       if (!data) {
         return res.status(404).json({ error: "그룹을 찾을 수 없습니다." });
+      }
+
+      // 배지 부여 조건 확인
+      const participantCount = data._count.participant;
+      const recordCount = data._count.records;
+      const likeCount = data.records.reduce(
+        (sum, r) => sum + r.likes.length,
+        0
+      );
+
+      // 조건 충족 시 배지 부여 (badges만 반환받음)
+      const badgeTypesToCheck = [
+        { type: BadgeType.PARTICIPATION_10, condition: participantCount >= 10 },
+        { type: BadgeType.RECORD_100, condition: recordCount >= 100 },
+        { type: BadgeType.LIKE_100, condition: likeCount >= 100 },
+      ];
+
+      let badges = Array.isArray(data.badges) ? [...data.badges] : [];
+
+      for (const { type, condition } of badgeTypesToCheck) {
+        if (condition && !badges.includes(type)) {
+          const updated = await checkAndApplyBadge(groupId, type);
+          if (Array.isArray(updated)) {
+            badges = updated;
+          }
+        }
       }
 
       //response body 평탄화
@@ -153,7 +190,7 @@ class GroupsController {
         })),
         createdAt: data.createdAt.getTime(),
         updatedAt: data.updatedAt.getTime(),
-        badges: Array.isArray(data.badges) ? data.badges : [],
+        badges: Array.isArray(badges) ? badges : [],
       };
 
       res.status(200).json(result);
@@ -338,8 +375,6 @@ class GroupsController {
       res.status(400).json({ error: "그룹삭제에 실패했습니다!" });
     }
   };
-
-
 }
 
 export default new GroupsController();

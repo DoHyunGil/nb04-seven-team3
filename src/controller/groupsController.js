@@ -271,9 +271,6 @@ class GroupsController {
         updatedAt: results.group.updatedAt,
         badges: [ results.group.badges ]
       };
-
-      console.log('resBody=> ', JSON.stringify(resBody));
-      // return res.status(201).send(resBody);
       return res.status(201).json(resBody);
 
     } catch (error) {

@@ -27,4 +27,10 @@ router.get("/", groupGetValidation, GroupsController.getAllGroups);
 //Group 목록 상세 조회
 router.get("/:groupId", groupGetValidation, GroupsController.getGroupById);
 
+//그룹참가등록
+router.post("/:groupId/participants", GroupsController.addGroupParticipant);
+
+//그룹참가취소
+router.delete("/:groupId/participants", GroupsController.deletelGroupParticipant);
+
 export default router;

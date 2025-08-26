@@ -47,6 +47,7 @@ model Group {
   ranks             Rank[]
   tags              ActivityTag[]
   records           Record[]
+  likes             Like[]
   badges            BadgeType[]   @default([])
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
@@ -71,8 +72,7 @@ model Record {
   description String?
   duration    Int
   distance    Float
-  photos      Photo[]
-  likes       Like[]
+  photos      String[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   authorId    Int
@@ -81,23 +81,15 @@ model Record {
   group       Group        @relation(fields: [groupId], references: [id])
 }
 
-model Photo {
-  id        Int      @id @default(autoincrement())
-  url       String
-  recordId  Int
-  record    Record   @relation(fields: [recordId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
 
 model Like {
   id            Int         @id @default(autoincrement())
-  recordId      Int
-  record        Record      @relation(fields: [recordId], references: [id])
+  groupId      Int
+  group        Group    @relation(fields: [groupId], references: [id])
   participantId Int
   participant   Participant @relation(fields: [participantId], references: [id])
 
-  @@unique([recordId, participantId])
+  @@unique([groupId, participantId])
 }
 
 model Tag {

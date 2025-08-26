@@ -259,13 +259,14 @@ class RecordsController {
   }
 
   createRecord = async (req, res) => {
+    console.log(req.body);
     const groupIdNum = Number(req.params.groupId); // groupId 문자열 -> 숫자 변환
     const {
-      ActivityType: activityTypeStr,
+      exerciseType,
       description,
       time,
       distance,
-      photos,
+      //photos,
       authorNickname,
       authorPassword,
     } = req.body;
@@ -280,7 +281,7 @@ class RecordsController {
 
     // 필수 값 검증
     if (
-      !activityTypeStr ||
+      !exerciseType ||
       !description ||
       time == null ||
       distance == null ||
@@ -294,14 +295,15 @@ class RecordsController {
 
     // ActivityType 매핑
     const typeMap = {
-      run: ActivityType.RUN,
-      bike: ActivityType.BIKE,
-      swim: ActivityType.SWIM,
+    run: ActivityType.RUN,
+    bike: ActivityType.BIKE,
+    swim: ActivityType.SWIM,
     };
-    const activityTypeEnum = typeMap[activityTypeStr.toLowerCase()];
+
+    const activityTypeEnum = typeMap[exerciseType.toLowerCase()]; 
     if (!activityTypeEnum) {
-      return res.status(400).json({ error: "Invalid ActivityType" });
-    }
+    return res.status(400).json({ error: "Invalid ActivityType" });
+  }
 
     try {
       /*
@@ -332,7 +334,7 @@ class RecordsController {
           */
 
       // 사진 배열 변환
-      const photosArray = Array.isArray(photos) ? photos : [];
+      //const photosArray = Array.isArray(photos) ? photos : [];
 
       // Record 생성
       const newRecord = await prisma.record.create({
@@ -341,17 +343,19 @@ class RecordsController {
           description,
           duration: time,
           distance,
-          authorId: participant.id,
+          authorId: 1,
           groupId: groupIdNum,
+          /*
           photos: {
             create: photosArray.map((url) => ({ photos: [url] })),
           },
+          */
         },
-        include: { photos: true, author: true },
+        include: { author: true },
       });
 
       // 응답 데이터 변환
-      const photoUrls = newRecord.photos.flatMap((p) => p.photos);
+      //const photoUrls = newRecord.photos.flatMap((p) => p.photos);
 
       return res.status(201).json({
         id: newRecord.id,
@@ -359,7 +363,7 @@ class RecordsController {
         description: newRecord.description,
         time: newRecord.duration,
         distance: newRecord.distance,
-        photos: photoUrls,
+        photos: [],
         author: {
           id: newRecord.author.id,
           nickname: newRecord.author.nickname,

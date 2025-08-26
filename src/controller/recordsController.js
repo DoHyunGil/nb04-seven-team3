@@ -9,17 +9,38 @@ class RecordsController {
     const { page, limit, order, orderBy, serach } = req.query;
 
     try {
-      const group = prisma.group.findMany({
+      const group = await prisma.group.findUnique({
         where: { id: groupId },
-        include: { records: true },
+        include: {
+          records: {
+            include: {
+              author: true,
+            },
+          },
+        },
       });
 
+      const result = group.records.map((record) => ({
+        id: record.id,
+        exerciseType: record.type,
+        description: record.description,
+        time: record.duration,
+        distance: record.distance,
+        photos: [],
+        author: {
+          id: record.author.id,
+          nickname: record.author.nickname,
+        },
+      }));
+
+      const count = result.length;
+
       return res.status(200).json({
-        data: group.records,
-        total: 0,
+        data: result,
+        total: count,
       });
     } catch (err) {
-      res.status(400).send({ message: "error" });
+      res.status(400).send({ message: err });
     }
   }
 

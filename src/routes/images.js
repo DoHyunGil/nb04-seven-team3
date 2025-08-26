@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.post(
   "/",
-  uploadMiddleware.array("image", 20),
+  uploadMiddleware.array("files", 20),
   UploadController.imagesUpload
 );
 

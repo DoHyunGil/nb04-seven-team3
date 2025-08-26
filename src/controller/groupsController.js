@@ -197,32 +197,32 @@ class GroupsController {
    */
   createGroupRecord = async (req, res) => {
     console.log("groupsController createGroupRecord()..");
+    const resultBody = {};
 
     try {
       const {
         name,
         description,
-        photoUrl,
+        photoUrl = "",
         goalRep,
         likeCount = 0,
         badgeYn = false,
         point = 0,
         discordWebhookUrl,
         discordInviteUrl,
-        nickname,
-        password,
+        ownerNickname,
+        ownerPassword,
       } = req.body;
 
       //필수값 검증
       if (
         !name ||
         !description ||
-        !photoUrl ||
         !goalRep ||
         !discordWebhookUrl ||
         !discordInviteUrl ||
-        !nickname ||
-        !password
+        !ownerNickname ||
+        !ownerPassword
       ) {
         return res
           .status(400)
@@ -232,7 +232,7 @@ class GroupsController {
       //nickname 중복방지 체크
       const dupNickname = await prisma.group.findMany({
         where: {
-          nickname: nickname,
+          nickname: ownerNickname,
         },
         select: { id: true, nickname: true, password: true },
       });
@@ -241,7 +241,7 @@ class GroupsController {
       }
 
       //그룹 생성
-      const result = await prisma.$transaction(async (tx) => {
+      const results = await prisma.$transaction(async (tx) => {
         //1. 그룹 생성
         const group = await tx.group.create({
           data: {
@@ -254,13 +254,10 @@ class GroupsController {
             point,
             discordWebhookUrl,
             discordInviteUrl,
-            nickname,
-            password,
+            nickname: ownerNickname,
+            password: ownerPassword,
           },
         });
-        console.log(
-          `group: ${group.id}, nickname: ${group.nickname}, password: ${group.password}`
-        );
         //2. 참가자 등록(그룹오너) : 그룹생성시 사용했던 nickname, password 자동부과
         const participant = await tx.participant.create({
           data: {
@@ -269,8 +266,40 @@ class GroupsController {
             groupId: group.id,
           },
         });
+        return { group, participant };
       });
-      res.status(200).send({ message: "그룹생성 되었습니다!" });
+
+      //Response Body 전송
+      const resBody = {
+        groupId: results.group.groupId,
+        id: results.group.id,
+        name: results.group.name,
+        description: results.group.description,
+        photoUrl: results.group.photoUrl,
+        goalRep: results.group.goalRep,
+        discordWebhookUrl: results.group.discordWebhookUrl,
+        discordInviteUrl: results.group.discordInviteUrl,
+        likeCount: results.group.likeCount,
+        tags: [results.group.tags],
+        owner: {
+          id: results.group.id,
+          nickname: results.group.nickname,
+          createdAt: results.group.createdAt,
+          updatedAt: results.group.updatedAt,
+        },
+        participants: [
+          {
+            id: results.participant.id,
+            nickname: results.participant.nickname,
+            createdAt: results.participant.createdAt,
+            updatedAt: results.participant.updatedAt,
+          },
+        ],
+        createdAt: results.group.createdAt,
+        updatedAt: results.group.updatedAt,
+        badges: [results.group.badges],
+      };
+      return res.status(201).json(resBody);
     } catch (error) {
       console.log(error);
       res.status(400).json({ error: "그룹등록에 실패했습니다!" });
@@ -288,27 +317,26 @@ class GroupsController {
       const {
         name,
         description,
-        photoUrl,
+        photoUrl = "",
         goalRep,
         likeCount = 0,
         badgeYn = false,
         point = 0,
         discordWebhookUrl,
         discordInviteUrl,
-        nickname,
-        password,
+        ownerNickname,
+        ownerPassword,
       } = req.body;
 
       //필수값 검증
       if (
         !name ||
         !description ||
-        !photoUrl ||
         !goalRep ||
         !discordWebhookUrl ||
         !discordInviteUrl ||
-        !nickname ||
-        !password
+        !ownerNickname ||
+        !ownerPassword
       ) {
         return res
           .status(400)
@@ -329,8 +357,8 @@ class GroupsController {
           point,
           discordWebhookUrl,
           discordInviteUrl,
-          nickname,
-          password,
+          nickname: ownerNickname,
+          password: ownerPassword,
         },
       });
       res.status(200).send(group);
@@ -364,6 +392,69 @@ class GroupsController {
     } catch (error) {
       console.log(error);
       res.status(400).json({ error: "그룹삭제에 실패했습니다!" });
+    }
+  };
+
+  /**
+   *  그룹참가등록
+   * @param {*} nickname
+   * @param {*} password
+   * @param {*} groupId(FK)
+   */
+  addGroupParticipant = async (req, res) => {
+    try {
+      const { groupId, nickname, password } = req.body;
+      console.log(
+        "[GroupsController] addGroupParticipant req==> ",
+        JSON.stringify(req.body)
+      );
+      //필수값검증
+      if (!nickname || !password || !groupId) {
+        return res
+          .status(400)
+          .json({ error: "필수 작성 내용이 누락되었습니다." });
+      }
+
+      //가입여부 중복체크
+      const dupaddNickName = await prisma.participant.findFirst({
+        where: {
+          nickname: nickname,
+        },
+      });
+      if (isNaN(dupaddNickName)) {
+        return res.status(400).json({ error: "이미 가입한 그룹입니다." });
+      }
+      //그룹참가자 등록
+      const result = await prisma.participant.create({
+        data: {
+          nickname,
+          password,
+          groupId,
+        },
+      });
+      res.status(200).send({ message: "그룹참가 등록되었습니다." });
+    } catch (error) {
+      console.log(error);
+      res.status(400).json({ error: "그룹참가 등록에 실패했습니다!" });
+    }
+  };
+
+  /**
+   * 그룹참가취소
+   * @param {*} id
+   */
+  deletelGroupParticipant = async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      console.log(`[GroupsController] deletelGroupParticipant id: ${id}`);
+
+      const result = await prisma.participant.delete({
+        where: { id },
+      });
+      res.status(200).send({ message: "그룹참가 취소되었습니다." });
+    } catch (error) {
+      console.log(error);
+      res.status(400).json({ error: "그룹참가 취소에 실패했습니다!" });
     }
   };
 }

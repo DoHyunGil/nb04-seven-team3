@@ -25,15 +25,11 @@ class GroupsController {
         : {};
 
       const total = await prisma.group.count({ where });
-      if ((pageNum - 1) * limitNum >= total) {
-        return res
-          .status(400)
-          .json({ error: "요청한 페이지가 존재하지 않습니다." });
-      }
+      const skip = (pageNum - 1) * limitNum;
 
       const data = await prisma.group.findMany({
         where,
-        skip: (pageNum - 1) * limitNum,
+        skip,
         take: limitNum,
         orderBy:
           orderBy === "participantCount"
@@ -338,8 +334,6 @@ class GroupsController {
       res.status(400).json({ error: "그룹삭제에 실패했습니다!" });
     }
   };
-
-
 }
 
 export default new GroupsController();

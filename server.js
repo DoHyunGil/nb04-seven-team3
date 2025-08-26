@@ -23,7 +23,7 @@ app.use("/images", imageRouter);
 
 app.use("/groups", groupRouters);
 app.use("/tags", tagsRouters);
-
+app.use("/records", recordsRouter);
 app.use("/images", express.static(path.join(process.cwd(), "uploads")));
 
 app.listen(PORT, () => {

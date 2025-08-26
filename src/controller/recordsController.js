@@ -6,9 +6,36 @@ const allowedRanks = ["MONTHLY", "WEEKLY"];
 class RecordsController {
   async getRecordList(req, res, next) {
     const groupId = Number(req.params.groupId);
+
+    console.log(
+      typeof pageNumber,
+      typeof limitNumber,
+      typeof skip,
+     `groupId: ${groupId} (type: ${typeof groupId})`
+      //typeof like
+    );
+    console.log("req.query:", { ...req.query });  
+    
+    // Validation
+    if (skip < 0)
+      return res.status(400).json({
+        error: "Skip value cannot be negative",
+      });
+    /*
+    if (like < 0)
+      return res.status(400).json({
+        error: "Like value cannot be negative",
+      });
+    */
+
+    const sortMap = {
+      latest: { createdAt: "desc" },
+      duration: { duration: "desc" },
+    };
     const { page, limit, order, orderBy, serach } = req.query;
 
     try {
+      const group = await prisma.group.findUnique({
       const group = await prisma.group.findUnique({
         where: { id: groupId },
         include: {
@@ -18,8 +45,28 @@ class RecordsController {
             },
           },
         },
+        include: {
+          records: {
+            include: {
+              author: true,
+            },
+          },
+        },
       });
 
+      const recordList = await prisma.record.findMany({
+        where: {
+          groupId,
+          ...(nickname
+            ? { nickname: { contains: nickname, mode: "insensitive" } }
+            : {}),
+        },
+        take: limitNumber,
+        skip,
+        orderBy: sortMap[sortType] ? [sortMap[sortType]] : [sortMap.latest],
+        include: { photos: true, author: true }
+      });
+      console.log(recordList)
       const result = group.records.map((record) => ({
         id: record.id,
         exerciseType: record.type,
@@ -36,11 +83,13 @@ class RecordsController {
       const count = result.length;
 
       return res.status(200).json({
-        data: result,
-        total: count,
+        message: "Record list retrieved successfully",
+        data: [...recordList],
       });
-    } catch (err) {
-      res.status(400).send({ message: err });
+
+    } catch (error) {
+      console.error(error);
+      res.status(500).json(error.message);
     }
   }
 
@@ -187,6 +236,7 @@ class RecordsController {
   }
 
   async getRecord(req, res, next) {
+    const recordId = Number(req.params.recordId);
     const groupId = Number(req.params.groupId);
     const {
       description,
@@ -206,11 +256,12 @@ class RecordsController {
       typeof distanceNumber,
       "Record time type:",
       typeof recordTimeNumber,
-      "Group index type:",
-      typeof groupId
+      " record index type:",
+      typeof recordId
     );
 
     // Validation
+    console.log(activityType)
     if (typeof activityType !== "string")
       return res
         .status(400)
@@ -218,10 +269,10 @@ class RecordsController {
     if (typeof nickname !== "string")
       return res.status(400).json({ message: "Nickname must be a string" });
 
-    if (isNaN(groupId))
+    if (isNaN(recordId))
       return res.status(400).json({
-        path: "groupId",
-        message: "groupId must be an integer",
+        path: "recordId",
+        message: "recordId must be an integer",
       });
 
     if (isNaN(distanceNumber))
@@ -239,7 +290,7 @@ class RecordsController {
 
       // Fetch records for the group
       const record = await prisma.record.findMany({
-        where: { id: groupId },
+        where: { Id: recordId },
         ...(nickname && { nickname }),
         ...(description && { description }),
         ...(activityType && { activityType }),
@@ -304,7 +355,7 @@ class RecordsController {
     }
 
     try {
-      /*
+      
       // 그룹 존재 여부 확인
       // select로 필요한 필드만 가져오기, 필요 없는 필드까지 가져오지 않도록 조건 추가
       const group = await prisma.group.findFirst({
@@ -329,7 +380,6 @@ class RecordsController {
           .status(401)
           .json({ error: "참여자가 존재하지 않거나 인증에 실패했습니다." });
       }
-          */
 
       // 사진 배열 변환
       const photosArray = Array.isArray(photos) ? photos : [];
@@ -371,5 +421,6 @@ class RecordsController {
     }
   };
 }
+
 
 export default new RecordsController();

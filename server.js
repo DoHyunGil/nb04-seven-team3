@@ -5,7 +5,7 @@ import recordsRouter from "./src/routes/records.js";
 import imageRouter from "./src/routes/images.js";
 import path from "path";
 import tagsRouters from "./src/routes/tags.js";
-
+import rankRouter from"./src/routes/rank.js";
 const app = express();
 const PORT = process.env.PORT || 4000;
 

@@ -213,7 +213,7 @@ class GroupsController {
       }
 
       //그룹 생성
-      const result = await prisma.$transaction(async (tx) => {
+      const results = await prisma.$transaction(async (tx) => {
         //1. 그룹 생성
         const group = await tx.group.create({
           data: {
@@ -238,13 +238,43 @@ class GroupsController {
             groupId: group.id,
           },
         });
-        group['groupId'] = group.id;
-        return group;
+        return {group, participant};
       });
+
       //Response Body 전송
-      console.log('resultBody=> ', JSON.stringify(result));
-      return res.status(201).json(result);
-      // res.status(201).send({message:'그룹등록 성공했습니다.'});
+      const resBody = {
+        groupId: results.group.groupId,
+        id: results.group.id,
+        name: results.group.name,
+        description: results.group.description,
+        photoUrl: results.group.photoUrl,
+        goalRep: results.group.goalRep,
+        discordWebhookUrl: results.group.discordWebhookUrl,
+        discordInviteUrl: results.group.discordInviteUrl,
+        likeCount: results.group.likeCount,
+        tags: [ results.group.tags ],
+        owner: {
+          id: results.group.id,
+          nickname: results.group.nickname,
+          createdAt: results.group.createdAt,
+          updatedAt: results.group.updatedAt
+        },
+        participants: [
+          {
+            id: results.participant.id,
+            nickname: results.participant.nickname,
+            createdAt: results.participant.createdAt,
+            updatedAt: results.participant.updatedAt
+          }
+        ],
+        createdAt: results.group.createdAt,
+        updatedAt: results.group.updatedAt,
+        badges: [ results.group.badges ]
+      };
+
+      console.log('resBody=> ', JSON.stringify(resBody));
+      // return res.status(201).send(resBody);
+      return res.status(201).json(resBody);
 
     } catch (error) {
       console.log(error);

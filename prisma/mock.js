@@ -4,7 +4,7 @@ export const GROUP = [
   {
     name: "100KM 달성 챌린지",
     description: "저녁 러닝을 위한 모임",
-    photoUrl: "www.running100Photo.co.kr",
+    photoUrl: "https://placehold.co/300x200/000000/000000.png?text=+",
     goalRep: 100,
     likeCount: 0,
     badgeYn: false,
@@ -19,7 +19,7 @@ export const GROUP = [
   {
     name: "헬스 몸짱 챌린지",
     description: "헬창들을 위한 모임",
-    photoUrl: "www.healthPhoto.co.kr",
+    photoUrl: "https://placehold.co/300x200/000000/000000.png?text=+",
     goalRep: 100,
     likeCount: 0,
     badgeYn: false,
@@ -34,7 +34,7 @@ export const GROUP = [
   {
     name: "사회인 야구 모임",
     description: "야구를 사랑하는 사람들 모임",
-    photoUrl: "www.baseballPhoto.co.kr",
+    photoUrl: "https://placehold.co/300x200/000000/000000.png?text=+",
     goalRep: 100,
     likeCount: 0,
     badgeYn: false,
@@ -49,7 +49,7 @@ export const GROUP = [
   {
     name: "골때리는 축구 모임",
     description: "축구를 사랑하는 사람들 모임",
-    photoUrl: "www.footballPhoto.co.kr",
+    photoUrl: "https://placehold.co/300x200/000000/000000.png?text=+",
     goalRep: 100,
     likeCount: 0,
     badgeYn: false,
@@ -64,7 +64,7 @@ export const GROUP = [
   {
     name: "50KM 챌린지",
     description: "단가리 러닝 사랑 모임",
-    photoUrl: "www.run50Photo.co.kr",
+    photoUrl: "https://placehold.co/300x200/000000/000000.png?text=+",
     goalRep: 100,
     likeCount: 0,
     badgeYn: false,

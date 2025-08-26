@@ -2,38 +2,38 @@ import { PrismaClient, BadgeType } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-/**
- * 배지를 그룹에 추가 (조건 만족 여부는 외부에서 판단)
- * 중복 배지는 자동 무시됨
- *
- * @param {number} groupId - 그룹 ID
- * @param {BadgeType} badgeType - 부여할 배지 타입
- * @returns {Promise<BadgeType[] | null>} - 업데이트된 badges 배열 또는 null (이미 있었던 경우)
- */
 export async function checkAndApplyBadge(groupId, badgeType) {
   try {
+    const group = await prisma.group.findUnique({
+      where: { id: groupId },
+      select: { badges: true },
+    });
+
+    // badges가 배열인지 확인하고, 존재하지 않거나 이미 포함된 경우 null 반환
+    if (
+      !group ||
+      !Array.isArray(group.badges) ||
+      group.badges.includes(badgeType)
+    ) {
+      return null;
+    }
+
     const updatedGroup = await prisma.group.update({
-      where: {
-        id: groupId,
-        NOT: {
-          badges: {
-            has: badgeType, // 이미 가지고 있지 않은 경우만
-          },
-        },
-      },
+      where: { id: groupId },
       data: {
         badges: {
           push: badgeType,
         },
       },
-      select: {
-        badges: true,
-      },
+      select: { badges: true },
     });
 
-    return updatedGroup.badges; // 성공적으로 추가된 경우
+    return updatedGroup.badges;
   } catch (error) {
-    // 조건에 안 맞아 update가 수행되지 않으면 Prisma가 에러를 던지므로 null 반환
+    console.error(
+      `그룹 ${groupId}에 배지 '${badgeType}'를 적용하는 중 오류 발생:`,
+      error
+    );
     return null;
   }
 }

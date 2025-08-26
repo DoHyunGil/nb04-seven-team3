@@ -1,5 +1,5 @@
-import { PrismaClient } from "@prisma/client";
-import { checkAndApplyBadge } from "./badgesController";
+import { PrismaClient, BadgeType } from "@prisma/client";
+import { checkAndApplyBadge } from "./badgesController.js";
 
 const prisma = new PrismaClient();
 
@@ -26,15 +26,11 @@ class GroupsController {
         : {};
 
       const total = await prisma.group.count({ where });
-      if ((pageNum - 1) * limitNum >= total) {
-        return res
-          .status(400)
-          .json({ error: "요청한 페이지가 존재하지 않습니다." });
-      }
+      const skip = (pageNum - 1) * limitNum;
 
       const data = await prisma.group.findMany({
         where,
-        skip: (pageNum - 1) * limitNum,
+        skip,
         take: limitNum,
         orderBy:
           orderBy === "participantCount"
@@ -61,7 +57,7 @@ class GroupsController {
               updatedAt: true,
             },
           },
-          badges: true,
+          likes: { select: { id: true } },
         },
       });
       //response body 평탄화
@@ -123,15 +119,10 @@ class GroupsController {
               updatedAt: true,
             },
           },
-          records: {
-            select: {
-              likes: { select: { id: true } },
-            },
-          },
+          likes: { select: { id: true } },
           _count: {
             select: { participant: true, records: true },
           },
-          badges: true,
         },
       });
 
@@ -142,8 +133,8 @@ class GroupsController {
       // 배지 부여 조건 확인
       const participantCount = data._count.participant;
       const recordCount = data._count.records;
-      const likeCount = data.records.reduce(
-        (sum, r) => sum + r.likes.length,
+      const likeCount = (data.records ?? []).reduce(
+        (sum, r) => sum + ((r.likes ?? []).length || 0),
         0
       );
 

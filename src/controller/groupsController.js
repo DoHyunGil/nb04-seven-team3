@@ -340,6 +340,73 @@ class GroupsController {
   };
 
 
+  /**
+     *  그룹참가등록 
+     * @param {*} nickname
+     * @param {*} password
+     * @param {*} groupId(FK)
+     */
+    addGroupParticipant = async (req, res) => {
+        try{
+            const {
+                groupId,
+                nickname,
+                password
+            } = req.body;
+            console.log('[GroupsController] addGroupParticipant req==> ' , JSON.stringify(req.body) );
+            //필수값검증
+            if(
+                !nickname ||
+                !password ||
+                !groupId
+            ){
+                return res.status(400).json({error: "필수 작성 내용이 누락되었습니다."})
+            };
+
+            //가입여부 중복체크
+            const dupaddNickName = await prisma.participant.findFirst({
+                where: {
+                    nickname: nickname
+                }
+            });
+            if (isNaN(dupaddNickName)) {
+                return res.status(400).json({error: "이미 가입한 그룹입니다."});
+            };
+            //그룹참가자 등록
+            const result = await prisma.participant.create({
+                data: {
+                    nickname,
+                    password,
+                    groupId
+                }
+            });
+            res.status(200).send({message:"그룹참가 등록되었습니다."});
+
+        } catch (error) {
+            console.log(error);
+            res.status(400).json({error: "그룹참가 등록에 실패했습니다!"});
+        };
+    };
+
+    /**
+     * 그룹참가취소 
+     * @param {*} id
+     */
+    deletelGroupParticipant = async (req, res) => {
+        try{
+            const id = parseInt(req.params.id);
+            console.log(`[GroupsController] deletelGroupParticipant id: ${id}`);
+            
+            const result = await prisma.participant.delete({
+                where: { id }
+            });
+            res.status(200).send({message:"그룹참가 취소되었습니다."})
+
+        } catch (error) {
+            console.log(error);
+            res.status(400).json({error: "그룹참가 취소에 실패했습니다!"});
+        };
+    };
 }
 
 export default new GroupsController();

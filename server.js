@@ -5,6 +5,7 @@ import recordsRouter from "./src/routes/records.js";
 import imageRouter from "./src/routes/images.js";
 import path from "path";
 import tagsRouters from "./src/routes/tags.js";
+import likesRouter from "./src/routes/likes.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -22,8 +23,9 @@ app.use(express.json());
 app.use("/images", imageRouter);
 
 app.use("/groups", groupRouters);
+app.use("/groups", likesRouter);
 app.use("/tags", tagsRouters);
-
+app.use("/records", recordsRouter);
 app.use("/images", express.static(path.join(process.cwd(), "uploads")));
 
 app.listen(PORT, () => {

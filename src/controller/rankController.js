@@ -73,7 +73,7 @@ class rankController {
             if (typeof duration !== "string") throw new Error("duration은 문자열이여야 합니다");
     
             const weeklyRank = await this.fetchRank(Number(groupId), "WEEKLY")
-            const monthlyRank = await this.fetchRank(Number(groupId),  "MONTHLY")
+            const monthlyRank= await this.fetchRank(Number(groupId),  "MONTHLY")
 
             const rankList = duration === "WEEKLY" ? weeklyRank : monthlyRank;
             console.log(rankList)

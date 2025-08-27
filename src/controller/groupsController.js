@@ -1,4 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, BadgeType } from "@prisma/client";
+import { checkAndApplyBadge } from "./badgesController.js";
 
 const prisma = new PrismaClient();
 
@@ -25,20 +26,16 @@ class GroupsController {
         : {};
 
       const total = await prisma.group.count({ where });
-      if ((pageNum - 1) * limitNum >= total) {
-        return res
-          .status(400)
-          .json({ error: "요청한 페이지가 존재하지 않습니다." });
-      }
+      const skip = (pageNum - 1) * limitNum;
 
       const data = await prisma.group.findMany({
         where,
-        skip: (pageNum - 1) * limitNum,
+        skip,
         take: limitNum,
         orderBy:
           orderBy === "participantCount"
-            ? { _count: { participant: order } }
-            : { [orderBy]: order },
+            ? [{ participant: { _count: order } }]
+            : [{ [orderBy]: order }],
         include: {
           _count: {
             select: { participant: true },
@@ -87,7 +84,7 @@ class GroupsController {
         })),
         createdAt: groups.createdAt.getTime(),
         updatedAt: groups.updatedAt.getTime(),
-        badges: groups.badgeYn,
+        badges: Array.isArray(groups.badges) ? groups.badges : [],
       }));
 
       res.json({ data: result, total });
@@ -121,11 +118,54 @@ class GroupsController {
               updatedAt: true,
             },
           },
+          _count: {
+            select: { participant: true, records: true },
+          },
         },
       });
 
       if (!data) {
         return res.status(404).json({ error: "그룹을 찾을 수 없습니다." });
+      }
+
+      // 배지 부여 조건 확인
+      const participantCount = data._count.participant;
+      const recordCount = data._count.records;
+      const likeCount =
+        typeof data.likeCount === "number" && data.likeCount >= 0
+          ? data.likeCount
+          : 0;
+
+      // 조건 충족 시 배지 부여 (badges만 반환받음)
+      const badgeTypesToCheck = [
+        { type: BadgeType.PARTICIPATION_10, condition: participantCount >= 10 },
+        { type: BadgeType.RECORD_100, condition: recordCount >= 100 },
+        { type: BadgeType.LIKE_100, condition: likeCount >= 100 },
+      ];
+
+      // 조건 만족하는 배지들만 필터링해서 새 배열 생성
+      const newBadges = badgeTypesToCheck
+        .filter(({ condition }) => condition)
+        .map(({ type }) => type);
+
+      // badges가 배열인지 확실히 체크, 아니면 빈 배열로 초기화
+      let badges = Array.isArray(data.badges) ? [...data.badges] : [];
+
+      // newBadges가 배열인지 방어, 아니면 빈 배열로 초기화
+      const safeNewBadges = Array.isArray(newBadges) ? newBadges : [];
+
+      // 기존 badges 와 새 badges 가 다르면 DB 업데이트
+      const isDifferent =
+        badges.length !== safeNewBadges.length ||
+        safeNewBadges.some((b) => !badges.includes(b)) ||
+        badges.some((b) => !safeNewBadges.includes(b));
+
+      if (isDifferent) {
+        await prisma.group.update({
+          where: { id: groupId },
+          data: { badges: safeNewBadges },
+        });
+        badges = safeNewBadges;
       }
 
       //response body 평탄화
@@ -137,7 +177,7 @@ class GroupsController {
         goalRep: data.goalRep,
         discordWebhookUrl: data.discordWebhookUrl,
         discordInviteUrl: data.discordInviteUrl,
-        likeCount: data.likeCount,
+        likeCount,
         tags: data.tags.map((t) => t.tag.name),
         owner: {
           id: data.id,
@@ -153,7 +193,7 @@ class GroupsController {
         })),
         createdAt: data.createdAt.getTime(),
         updatedAt: data.updatedAt.getTime(),
-        badges: Array.isArray(data.badges) ? data.badges : [],
+        badges: Array.isArray(badges) ? badges : [],
       };
 
       res.status(200).json(result);
@@ -168,52 +208,40 @@ class GroupsController {
    *  @param : {*} RequestBody
    */
   createGroupRecord = async (req, res) => {
-    console.log("groupsController createGroupRecord()..");
+    const resultBody = {};
 
     try {
       const {
         name,
         description,
-        photoUrl,
+        photoUrl = '',
         goalRep,
         likeCount = 0,
         badgeYn = false,
         point = 0,
         discordWebhookUrl,
         discordInviteUrl,
-        nickname,
-        password,
+        ownerNickname,
+        ownerPassword,
       } = req.body;
 
       //필수값 검증
       if (
         !name ||
         !description ||
-        !photoUrl ||
         !goalRep ||
         !discordWebhookUrl ||
         !discordInviteUrl ||
-        !nickname ||
-        !password
+        !ownerNickname ||
+        !ownerPassword
       ) {
         return res
           .status(400)
           .json({ error: "필수 작성 내용이 누락되었습니다." });
       }
 
-      //nickname 중복방지 체크
-      const dupNickname = await prisma.group.findMany({
-        where: {
-          nickname: nickname,
-        },
-        select: { id: true, nickname: true, password: true },
-      });
-      if (isNaN(dupNickname)) {
-        return res.status(400).json({ error: "중복된 닉네임이 존재합니다." });
-      }
-
       //그룹 생성
-      const result = await prisma.$transaction(async (tx) => {
+      const results = await prisma.$transaction(async (tx) => {
         //1. 그룹 생성
         const group = await tx.group.create({
           data: {
@@ -226,13 +254,10 @@ class GroupsController {
             point,
             discordWebhookUrl,
             discordInviteUrl,
-            nickname,
-            password,
+            nickname: ownerNickname,
+            password: ownerPassword,
           },
         });
-        console.log(
-          `group: ${group.id}, nickname: ${group.nickname}, password: ${group.password}`
-        );
         //2. 참가자 등록(그룹오너) : 그룹생성시 사용했던 nickname, password 자동부과
         const participant = await tx.participant.create({
           data: {
@@ -241,8 +266,41 @@ class GroupsController {
             groupId: group.id,
           },
         });
+        return {group, participant};
       });
-      res.status(200).send({ message: "그룹생성 되었습니다!" });
+
+      //Response Body 전송
+      const resBody = {
+        groupId: results.group.groupId,
+        id: results.group.id,
+        name: results.group.name,
+        description: results.group.description,
+        photoUrl: results.group.photoUrl,
+        goalRep: results.group.goalRep,
+        discordWebhookUrl: results.group.discordWebhookUrl,
+        discordInviteUrl: results.group.discordInviteUrl,
+        likeCount: results.group.likeCount,
+        tags: [ results.group.tags ],
+        owner: {
+          id: results.group.id,
+          nickname: results.group.nickname,
+          createdAt: results.group.createdAt,
+          updatedAt: results.group.updatedAt
+        },
+        participants: [
+          {
+            id: results.participant.id,
+            nickname: results.participant.nickname,
+            createdAt: results.participant.createdAt,
+            updatedAt: results.participant.updatedAt
+          }
+        ],
+        createdAt: results.group.createdAt,
+        updatedAt: results.group.updatedAt,
+        badges: [ results.group.badges ]
+      };
+      return res.status(201).json(resBody);
+
     } catch (error) {
       console.log(error);
       res.status(400).json({ error: "그룹등록에 실패했습니다!" });
@@ -260,34 +318,31 @@ class GroupsController {
       const {
         name,
         description,
-        photoUrl,
+        photoUrl = '',
         goalRep,
         likeCount = 0,
         badgeYn = false,
         point = 0,
         discordWebhookUrl,
         discordInviteUrl,
-        nickname,
-        password,
+        ownerNickname,
+        ownerPassword,
       } = req.body;
 
       //필수값 검증
       if (
         !name ||
         !description ||
-        !photoUrl ||
         !goalRep ||
         !discordWebhookUrl ||
         !discordInviteUrl ||
-        !nickname ||
-        !password
+        !ownerNickname ||
+        !ownerPassword
       ) {
         return res
           .status(400)
           .json({ error: "필수 작성 내용이 누락되었습니다." });
       }
-
-      console.log(`groupsController updateGroupRecord()..  groupId:${id} `);
 
       const group = await prisma.group.update({
         where: { id },
@@ -301,8 +356,8 @@ class GroupsController {
           point,
           discordWebhookUrl,
           discordInviteUrl,
-          nickname,
-          password,
+          nickname: ownerNickname,
+          password: ownerPassword,
         },
       });
       res.status(200).send(group);
@@ -320,8 +375,6 @@ class GroupsController {
   deleteGroupRecord = async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      console.log(`groupsController deleteGroupRecord()..  groupId:${id} `);
-
       const result = await prisma.$transaction(async (tx) => {
         //1. 참가자삭제
         const participant = await tx.participant.deleteMany({
@@ -339,7 +392,148 @@ class GroupsController {
     }
   };
 
+ /**
+     *  그룹참가등록 
+     * @param {*} nickname
+     * @param {*} password
+     * @param {*} groupId(FK)
+     */
+    addGroupParticipant = async (req, res) => {
+        try{
+            const reqGroupId = parseInt(req.params.groupId);
+            const {
+                nickname,
+                password
+            } = req.body;
+            //필수값검증
+            if(
+                !nickname ||
+                !password ||
+                !reqGroupId
+            ){
+                return res.status(400).json({error: "필수 작성 내용이 누락되었습니다."})
+            };
+            //가입여부 중복체크
+            const dupaddNickName = await prisma.participant.findFirst({
+                where: {
+                    groupId: reqGroupId,
+                    nickname: nickname
+                }
+            });
+            if (isNaN(dupaddNickName)) {
+                return res.status(400).json({error: "이미 가입한 그룹입니다."});
+            };
+            //그룹참가자 등록
+            const participant = await prisma.participant.create({
+                data: {
+                    nickname,
+                    password,
+                    groupId: reqGroupId
+                }
+            });
+            //response 객체등록을 위한 조회
+            const group = await prisma.group.findUnique({
+              where: {
+                id: reqGroupId
+              }
+            });
 
+            const resBody = {
+              groupId: group.id,
+              id: group.id,
+              name: group.name,
+              description: group.description,
+              photoUrl: group.photoUrl,
+              goalRep: group.goalRep,
+              discordWebhookUrl: group.discordWebhookUrl,
+              discordInviteUrl: group.discordInviteUrl,
+              likeCount: group.likeCount,
+              tags: [ group.tags ],
+              owner: {
+                id: group.id,
+                nickname: group.nickname,
+                createdAt: group.createdAt,
+                updatedAt: group.updatedAt
+              },
+              participants: [
+                {
+                  id: participant.id,
+                  nickname: participant.nickname,
+                  createdAt: participant.createdAt,
+                  updatedAt: participant.updatedAt
+                }
+              ],
+              createdAt: participant.createdAt,
+              updatedAt: participant.updatedAt,
+              badges: [ group.badges ]
+            };
+            res.status(201).json(resBody);
+
+        } catch (error) {
+            console.log(error);
+            res.status(400).json({error: "그룹참가 등록에 실패했습니다!"});
+        };
+    };
+
+    /**
+     * 그룹참가취소 
+     * @param {*} groupId
+     */
+    deletelGroupParticipant = async (req, res) => {
+        try{
+            const groupId = parseInt(req.params.groupId);
+            console.log(`[GroupsController] deletelGroupParticipant groupId: ${groupId}`);
+            const {
+              nickname,
+              password
+            } = req.body;
+            //필수값 검증
+            if( !nickname ||
+                !password 
+            ){
+              return res.status(400).json({error: "필수 작성 내용이 누락되었습니다."})
+            };
+            //비밀번호 일치검증
+            const checkPassword = await prisma.participant.findFirst({
+              where: {
+                groupId,
+                nickname,
+                password
+              }
+            });
+            //일치않으면 가입취소 불가            
+            if(!checkPassword){
+              return res.status(401).json({error: "Wrong password"});
+            };
+            //삭제하기 위한 키값 조회
+            const participant = await prisma.participant.findFirst({
+               where: {
+                    groupId: groupId,
+                    nickname: nickname,
+                    password: password
+               } 
+            });
+            //가입취소 처리
+            const result = await prisma.participant.delete({
+                where: { 
+                    id: participant.id,
+                    groupId,
+                    nickname,
+                    password
+                  }
+            });
+            //가입취소 결과반환
+            const resBody = {
+              nickname: result.nickname,
+              password: result.password
+            };
+            res.status(200).json(resBody);
+
+        } catch (error) {
+            console.log(error);
+            res.status(400).json({error: "그룹참가 취소에 실패했습니다!"});
+        };
+    };
 }
 
 export default new GroupsController();

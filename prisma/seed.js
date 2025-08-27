@@ -52,6 +52,22 @@ async function main() {
     },
   });
 
+  const group3 = await prisma.group.create({
+    data: {
+      name: "랭크 테스트2",
+      description: "랭크 테스트 할 곳2",
+      photoUrl: "",
+      goalRep: 123,
+      likeCount: 1000,
+      badgeYn: false,
+      point: 789,
+      discordWebhookUrl: "null",
+      discordInviteUrl: "null",
+      nickname: "TEST",
+      password: "PASSWD",
+    },
+  });
+
   const user1 = await prisma.participant.create({
     data: {
       nickname: "2등유저",
@@ -82,6 +98,28 @@ async function main() {
     },
   });
 
+  for (let i = 4; i <= 10; i++) {
+    await prisma.participant.create({
+      data: {
+        nickname: `${i}등유저`,
+        password: "PASSWD",
+        group: {
+          connect: { id: group.id },
+        },
+      },
+    });
+  }
+
+  const user11 = await prisma.participant.create({
+    data: {
+      nickname: "11등유저",
+      password: "PASSWD",
+      group: {
+        connect: { id: group2.id },
+      },
+    },
+  });
+
   prisma.group.update({
     where: { id: group.id },
     data: {
@@ -91,8 +129,17 @@ async function main() {
     },
   });
 
+  prisma.group.update({
+    where: { id: group2.id },
+    data: {
+      participant: {
+        connect: [{ id: user11.id }],
+      },
+    },
+  });
+
   //레코드 생성 루프
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 100; i++) {
     await prisma.record.create({
       data: {
         type: "RUN",

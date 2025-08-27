@@ -39,17 +39,32 @@ const groupGetSchemas = {
 
 //미들웨어 함수
 const groupGetValidation = (req, res, next) => {
-  try {
-    if (Object.keys(req.query).length > 0) {
-      req.validatedQuery = groupGetSchemas.query.parse(req.query);
+  const rawQuery = req.query ?? {};
+  const rawParams = req.params ?? {};
+
+  if (Object.keys(rawQuery).length > 0) {
+    const queryResult = groupGetSchemas.query.safeParse(rawQuery);
+    if (!queryResult.success) {
+      return res.status(400).json({
+        message: "쿼리 파라미터가 잘못됐습니다.",
+        error: queryResult.error.issues,
+      });
     }
-    if (Object.keys(req.params).length > 0) {
-      req.validatedParams = groupGetSchemas.params.parse(req.params);
-    }
-    next(); // 다음 미들웨어 또는 라우터 핸들러로 진행
-  } catch (error) {
-    next(error); // 검증 실패 시 에러 핸들러로 전달
+    req.validatedQuery = queryResult.data;
   }
+
+  if (Object.keys(rawParams).length > 0) {
+    const paramsResult = groupGetSchemas.params.safeParse(rawParams);
+    if (!paramsResult.success) {
+      return res.status(400).json({
+        message: "URL 파라미터가 잘못됐습니다.",
+        error: paramsResult.error.issues,
+      });
+    }
+    req.validatedParams = paramsResult.data;
+  }
+
+  next();
 };
 
 export default groupGetValidation;

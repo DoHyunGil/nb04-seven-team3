@@ -1,19 +1,21 @@
 import express from "express";
 import GroupsController from "../controller/groupsController.js";
 import recordsRouter from "./records.js";
-import rankRouter from"./rank.js"
+import rankRouter from "./rank.js";
+import likesRouter from "./likes.js";
 // import TagsController from "../controller/tagsController.js";
 
-
 import groupGetValidation from "../schemas/groups/group.get.schema.js";
-
 
 const router = express.Router();
 
 //records 라우팅
 router.use("/:groupId/records", recordsRouter);
 
-router.use("/:groupId/rank", rankRouter)
+router.use("/:groupId/rank", rankRouter);
+//likes 라우팅
+router.use(":groupId/likes", likesRouter);
+
 //Group 생성
 router.post("/", GroupsController.createGroupRecord);
 
@@ -29,6 +31,13 @@ router.get("/", groupGetValidation, GroupsController.getAllGroups);
 //Group 목록 상세 조회
 router.get("/:groupId", groupGetValidation, GroupsController.getGroupById);
 
+//그룹참가등록
+router.post("/:groupId/participants", GroupsController.addGroupParticipant);
 
+//그룹참가취소
+router.delete(
+  "/:groupId/participants",
+  GroupsController.deletelGroupParticipant
+);
 
 export default router;

@@ -464,7 +464,7 @@ class GroupsController {
             });
             //일치않으면 가입취소 불가            
             if(!checkPassword){
-              return res.status(401).json({error: "Wroing password"});
+              return res.status(401).json({error: "Wrong password"});
             };
             //삭제하기 위한 키값 조회
             const participant = await prisma.participant.findFirst({

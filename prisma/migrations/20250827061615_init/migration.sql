@@ -4,6 +4,9 @@ CREATE TYPE "ActivityType" AS ENUM ('RUN', 'BIKE', 'SWIM');
 -- CreateEnum
 CREATE TYPE "RankDuration" AS ENUM ('MONTHLY', 'WEEKLY');
 
+-- CreateEnum
+CREATE TYPE "BadgeType" AS ENUM ('PARTICIPATION_10', 'RECORD_100', 'LIKE_100');
+
 -- CreateTable
 CREATE TABLE "Group" (
     "id" SERIAL NOT NULL,
@@ -18,6 +21,7 @@ CREATE TABLE "Group" (
     "discordInviteUrl" TEXT NOT NULL,
     "nickname" TEXT NOT NULL,
     "password" TEXT NOT NULL,
+    "badges" "BadgeType"[] DEFAULT ARRAY[]::"BadgeType"[],
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -43,32 +47,13 @@ CREATE TABLE "Record" (
     "description" TEXT,
     "duration" INTEGER NOT NULL,
     "distance" DOUBLE PRECISION NOT NULL,
+    "photos" TEXT[],
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "authorId" INTEGER NOT NULL,
     "groupId" INTEGER NOT NULL,
 
     CONSTRAINT "Record_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Photo" (
-    "id" SERIAL NOT NULL,
-    "url" TEXT NOT NULL,
-    "recordId" INTEGER NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Photo_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Like" (
-    "id" SERIAL NOT NULL,
-    "recordId" INTEGER NOT NULL,
-    "participantId" INTEGER NOT NULL,
-
-    CONSTRAINT "Like_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -101,9 +86,6 @@ CREATE TABLE "Rank" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Like_recordId_participantId_key" ON "Like"("recordId", "participantId");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Tag_name_key" ON "Tag"("name");
 
 -- CreateIndex
@@ -117,15 +99,6 @@ ALTER TABLE "Record" ADD CONSTRAINT "Record_authorId_fkey" FOREIGN KEY ("authorI
 
 -- AddForeignKey
 ALTER TABLE "Record" ADD CONSTRAINT "Record_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "Group"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Photo" ADD CONSTRAINT "Photo_recordId_fkey" FOREIGN KEY ("recordId") REFERENCES "Record"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Like" ADD CONSTRAINT "Like_recordId_fkey" FOREIGN KEY ("recordId") REFERENCES "Record"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Like" ADD CONSTRAINT "Like_participantId_fkey" FOREIGN KEY ("participantId") REFERENCES "Participant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ActivityTag" ADD CONSTRAINT "ActivityTag_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "Group"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -47,12 +47,13 @@ class rankController {
                 records_map [pid]= {
                     authorId:pid,
                     nickname: rec.author.nickname,
-                    recordTime: Number(rec.participant.recordTime || 0),
+                    recordTime: 0,
                     recordCount : 0
                 }
             } 
-            console.log(records_map)
             records_map[pid].recordCount += 1;
+            console.log(rec.duration)
+            records_map[pid].recordTime += rec.duration
         })
         const rankList = Object.values(records_map)
             .sort((a,b) => b.recordCount - a.recordCount)

@@ -10,7 +10,23 @@ async function main() {
       description: "랭크 테스트 할 곳",
       photoUrl: "",
       goalRep: 123,
-      likeCount: 456,
+      likeCount: 5,
+      badgeYn: false,
+      point: 789,
+      discordWebhookUrl: "null",
+      discordInviteUrl: "null",
+      nickname: "TEST",
+      password: "PASSWD",
+    },
+  });
+
+  const group1 = await prisma.group.create({
+    data: {
+      name: "랭크 테스트",
+      description: "랭크 테스트 할 곳",
+      photoUrl: "",
+      goalRep: 123,
+      likeCount: 3,
       badgeYn: false,
       point: 789,
       discordWebhookUrl: "null",
@@ -21,6 +37,22 @@ async function main() {
   });
 
   const group2 = await prisma.group.create({
+    data: {
+      name: "랭크 테스트",
+      description: "랭크 테스트 할 곳",
+      photoUrl: "",
+      goalRep: 123,
+      likeCount: 1,
+      badgeYn: false,
+      point: 789,
+      discordWebhookUrl: "null",
+      discordInviteUrl: "null",
+      nickname: "TEST",
+      password: "PASSWD",
+    },
+  });
+
+  const group3 = await prisma.group.create({
     data: {
       name: "랭크 테스트2",
       description: "랭크 테스트 할 곳2",

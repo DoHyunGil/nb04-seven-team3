@@ -1,6 +1,7 @@
 import express from "express";
 import GroupsController from "../controller/groupsController.js";
 import recordsRouter from "./records.js";
+import rankRouter from "./rank.js";
 import likesRouter from "./likes.js";
 // import TagsController from "../controller/tagsController.js";
 
@@ -11,6 +12,7 @@ const router = express.Router();
 //records 라우팅
 router.use("/:groupId/records", recordsRouter);
 
+router.use("/:groupId/rank", rankRouter);
 //likes 라우팅
 router.use(":groupId/likes", likesRouter);
 

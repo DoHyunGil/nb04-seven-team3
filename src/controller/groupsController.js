@@ -34,8 +34,8 @@ class GroupsController {
         take: limitNum,
         orderBy:
           orderBy === "participantCount"
-            ? { _count: { participant: order } }
-            : { [orderBy]: order },
+            ? [{ participant: { _count: order } }]
+            : [{ [orderBy]: order }],
         include: {
           _count: {
             select: { participant: true },

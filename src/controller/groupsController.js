@@ -353,7 +353,7 @@ class GroupsController {
   };
 
 
-  /**
+    /**
      *  그룹참가등록 
      * @param {*} nickname
      * @param {*} password

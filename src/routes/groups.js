@@ -1,16 +1,18 @@
 import express from "express";
 import GroupsController from "../controller/groupsController.js";
 import recordsRouter from "./records.js";
+import likesRouter from "./likes.js";
 // import TagsController from "../controller/tagsController.js";
 
-
 import groupGetValidation from "../schemas/groups/group.get.schema.js";
-
 
 const router = express.Router();
 
 //records 라우팅
 router.use("/:groupId/records", recordsRouter);
+
+//likes 라우팅
+router.use(":groupId/likes", likesRouter);
 
 //Group 생성
 router.post("/", GroupsController.createGroupRecord);
@@ -31,6 +33,9 @@ router.get("/:groupId", groupGetValidation, GroupsController.getGroupById);
 router.post("/:groupId/participants", GroupsController.addGroupParticipant);
 
 //그룹참가취소
-router.delete("/:groupId/participants", GroupsController.deletelGroupParticipant);
+router.delete(
+  "/:groupId/participants",
+  GroupsController.deletelGroupParticipant
+);
 
 export default router;

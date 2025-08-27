@@ -31,32 +31,32 @@ class rankController {
     // 범위 함수를 매개변수로 받는 비동기 함수 
     async fetchRank(groupId, rangeType){
         const{start, end} = await this.getRange(rangeType)
-        
-        console.log(start, end);
+
         //랭크 데이터 모델에서 데이터 정렬
         const records = await prisma.record.findMany({
             where: {
+                author : {groupId},
                 createdAt: { gte: start, lte: end } 
             },
-            include: { author: { include: { group: true } } }
+            include: {author: true } 
         })
-        const records_map = {}
+        let records_map = {}
         records.forEach(rec => {
-            const gid = rec.author.groupId
-            if (!records_map[gid]){
-                records_map [gid]= {
-                    groupId:gid,
-                    groupName: rec.author.group.name,
+            const pid = rec.authorId
+            if (!records_map[pid]){
+                records_map [pid]= {
+                    authorId:pid,
+                    nickname: rec.author.nickname,
+                    recordTime: Number(rec.participant.recordTime || 0),
                     recordCount : 0
                 }
             } 
-            records_map[gid].recordCount += 1;
+            console.log(records_map)
+            records_map[pid].recordCount += 1;
         })
-        console.log(records_map)
         const rankList = Object.values(records_map)
-            .sort((a,b) => b.rankCount - a.rankCount)
+            .sort((a,b) => b.recordCount - a.recordCount)
             .map((g, idx) =>({...g, rank :idx + 1 }))
-        console.log(rankList)
         return rankList
     }
     // 월간 혹은 주간에 따른 운동 기록이 많은 그룹 순서대로 나타내기
@@ -66,7 +66,6 @@ class rankController {
             const groupId = Number(req.params.groupId);
 
             const duration = req.query.duration || "WEEKLY";
-            console.log(duration)
            
     
             if(!groupId || isNaN(groupId)) return res.status(400).json("check groupId")
@@ -76,9 +75,8 @@ class rankController {
             const monthlyRank= await this.fetchRank(Number(groupId),  "MONTHLY")
 
             const rankList = duration === "WEEKLY" ? weeklyRank : monthlyRank;
-            console.log(rankList)
             res.status(200).json(rankList)
-        } catch (error) {
+        } catch (error) {  
               res.status(500).json({ error: error.message });
         }
 

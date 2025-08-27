@@ -8,7 +8,7 @@ router.post("/", recordsController.createRecord);
 
 router.get("/", recordsController.getRecordList);
 
-router.get("/:groupId/record/rank", recordsController.getRankRecords);
+// router.get("/:groupId/record/rank", recordsController.getRankRecords);
 
 //미사용
 // router.get("/:groupId/record/", recordsController.getRecord);

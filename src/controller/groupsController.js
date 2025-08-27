@@ -195,7 +195,7 @@ class GroupsController {
         updatedAt: data.updatedAt.getTime(),
         badges: Array.isArray(badges) ? badges : [],
       };
-      console.log("응답 결과:", result);
+
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: `서버 오류 ${error.message}` });

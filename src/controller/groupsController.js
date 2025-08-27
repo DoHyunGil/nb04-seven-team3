@@ -57,7 +57,6 @@ class GroupsController {
               updatedAt: true,
             },
           },
-          likes: { select: { id: true } },
         },
       });
       //response body 평탄화
@@ -119,7 +118,6 @@ class GroupsController {
               updatedAt: true,
             },
           },
-          likes: { select: { id: true } },
           _count: {
             select: { participant: true, records: true },
           },
@@ -133,10 +131,10 @@ class GroupsController {
       // 배지 부여 조건 확인
       const participantCount = data._count.participant;
       const recordCount = data._count.records;
-      const likeCount = (data.records ?? []).reduce(
-        (sum, r) => sum + ((r.likes ?? []).length || 0),
-        0
-      );
+      const likeCount =
+        typeof data.likeCount === "number" && data.likeCount >= 0
+          ? data.likeCount
+          : 0;
 
       // 조건 충족 시 배지 부여 (badges만 반환받음)
       const badgeTypesToCheck = [
@@ -145,15 +143,29 @@ class GroupsController {
         { type: BadgeType.LIKE_100, condition: likeCount >= 100 },
       ];
 
+      // 조건 만족하는 배지들만 필터링해서 새 배열 생성
+      const newBadges = badgeTypesToCheck
+        .filter(({ condition }) => condition)
+        .map(({ type }) => type);
+
+      // badges가 배열인지 확실히 체크, 아니면 빈 배열로 초기화
       let badges = Array.isArray(data.badges) ? [...data.badges] : [];
 
-      for (const { type, condition } of badgeTypesToCheck) {
-        if (condition && !badges.includes(type)) {
-          const updated = await checkAndApplyBadge(groupId, type);
-          if (Array.isArray(updated)) {
-            badges = updated;
-          }
-        }
+      // newBadges가 배열인지 방어, 아니면 빈 배열로 초기화
+      const safeNewBadges = Array.isArray(newBadges) ? newBadges : [];
+
+      // 기존 badges 와 새 badges 가 다르면 DB 업데이트
+      const isDifferent =
+        badges.length !== safeNewBadges.length ||
+        safeNewBadges.some((b) => !badges.includes(b)) ||
+        badges.some((b) => !safeNewBadges.includes(b));
+
+      if (isDifferent) {
+        await prisma.group.update({
+          where: { id: groupId },
+          data: { badges: safeNewBadges },
+        });
+        badges = safeNewBadges;
       }
 
       //response body 평탄화
@@ -165,7 +177,7 @@ class GroupsController {
         goalRep: data.goalRep,
         discordWebhookUrl: data.discordWebhookUrl,
         discordInviteUrl: data.discordInviteUrl,
-        likeCount: data.likeCount,
+        likeCount,
         tags: data.tags.map((t) => t.tag.name),
         owner: {
           id: data.id,

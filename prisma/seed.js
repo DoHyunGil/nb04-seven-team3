@@ -107,7 +107,7 @@ async function main() {
   });
 
   //레코드 생성 루프
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 100; i++) {
     await prisma.record.create({
       data: {
         type: "RUN",

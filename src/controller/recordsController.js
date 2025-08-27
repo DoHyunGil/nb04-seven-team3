@@ -320,22 +320,23 @@ class RecordsController {
         */
       
       // 참여자 인증
-      // groupId와 nickname 조건을 같이 걸어 조회, nickname 단독 조회 대신 groupId 조건도 포함 가능
       const participant = await prisma.participant.findFirst({
-        where: {
-          nickname: authorNickname,
-          group: {
-             some: { id: groupIdNum }
-            //id: dummyGroup.id  // 더미 그룹 사용
-           },
-        },
-        select: { id: true, nickname: true, password: true },
-      });
-      if (!participant || participant.password !== authorPassword) {
-        return res
-          .status(401)
-          .json({ error: "참여자가 존재하지 않거나 인증에 실패했습니다." });
-      }
+      where: {
+        nickname: authorNickname,
+        groupId: groupIdNum, 
+      },
+      select: {
+        id: true,
+        nickname: true,
+        password: true,
+      },
+    });
+
+    if (!participant || participant.password !== authorPassword) {
+    return res
+      .status(401)
+      .json({ error: "참여자가 존재하지 않거나 인증에 실패했습니다." });
+    }
       
       //더미 데이터는 주석 처리했습니다. 
       /*

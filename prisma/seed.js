@@ -20,6 +20,22 @@ async function main() {
     },
   });
 
+  const group2 = await prisma.group.create({
+    data: {
+      name: "랭크 테스트2",
+      description: "랭크 테스트 할 곳2",
+      photoUrl: "",
+      goalRep: 123,
+      likeCount: 1000,
+      badgeYn: false,
+      point: 789,
+      discordWebhookUrl: "null",
+      discordInviteUrl: "null",
+      nickname: "TEST",
+      password: "PASSWD",
+    },
+  });
+
   const user1 = await prisma.participant.create({
     data: {
       nickname: "2등유저",
@@ -50,11 +66,42 @@ async function main() {
     },
   });
 
+  for (let i = 4; i <= 10; i++) {
+    await prisma.participant.create({
+      data: {
+        nickname: `${i}등유저`,
+        password: "PASSWD",
+        group: {
+          connect: { id: group.id },
+        },
+      },
+    });
+  }
+
+  const user11 = await prisma.participant.create({
+    data: {
+      nickname: "11등유저",
+      password: "PASSWD",
+      group: {
+        connect: { id: group2.id },
+      },
+    },
+  });
+
   prisma.group.update({
     where: { id: group.id },
     data: {
       participant: {
         connect: [{ id: user1.id }, { id: user2.id }, { id: user3.id }],
+      },
+    },
+  });
+
+  prisma.group.update({
+    where: { id: group2.id },
+    data: {
+      participant: {
+        connect: [{ id: user11.id }],
       },
     },
   });

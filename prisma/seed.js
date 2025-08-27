@@ -144,7 +144,7 @@ async function main() {
       data: {
         type: "RUN",
         description: "RECORD_DESC",
-        duration: 111,
+        duration: i,
         distance: 1123.123123,
         author: {
           connect: { id: user3.id },
@@ -161,7 +161,7 @@ async function main() {
       data: {
         type: "RUN",
         description: "RECORD_DESC",
-        duration: 111,
+        duration: i,
         distance: 1123.123123,
         author: {
           connect: { id: user1.id },
@@ -178,7 +178,7 @@ async function main() {
       data: {
         type: "RUN",
         description: "RECORD_DESC",
-        duration: 111,
+        duration: i,
         distance: 1123.123123,
         author: {
           connect: { id: user2.id },

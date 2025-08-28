@@ -78,14 +78,15 @@ class rankController {
         return res.status(400).json("check groupId");
       if (typeof duration !== "string")
         throw new Error("duration은 문자열이여야 합니다");
-      /*
       const weeklyRank = await this.fetchRank(Number(groupId), "WEEKLY");
       const monthlyRank = await this.fetchRank(Number(groupId), "MONTHLY");
-        */
-      const [weeklyRank, monthlyRank] = promise.all([
-        this.fetchRank(Number(groupId), "WEEKLY"),
-        this.fetchRank(Number(groupId), "MONTHLY"),
-      ]);
+
+      //에러 코드
+      // const [weeklyRank, monthlyRank] = promise.all([
+      //   this.fetchRank(Number(groupId), "WEEKLY"),
+      //   this.fetchRank(Number(groupId), "MONTHLY"),
+      // ]);
+
       const rankList = duration === "WEEKLY" ? weeklyRank : monthlyRank;
       res.status(200).json(rankList);
     } catch (error) {

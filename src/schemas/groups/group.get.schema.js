@@ -1,4 +1,5 @@
 import z from "zod";
+import createError from "http-errors";
 
 // 그룹 GET 요청에 대한 query와 params 검증 스키마 정의
 const groupGetSchemas = {
@@ -22,9 +23,16 @@ const groupGetSchemas = {
 
     order: z.enum(["asc", "desc"]).optional().default("desc"),
     orderBy: z
-      .enum(["likeCount", "participantCount", "createdAt"])
+      .string()
       .optional()
-      .default("createdAt"),
+      .default("createdAt")
+      .refine(
+        (val) => ["likeCount", "participantCount", "createdAt"].includes(val),
+        {
+          message:
+            "The orderBy parameter must be one of the following values: ['likeCount', 'participantCount', 'createdAt'].",
+        }
+      ),
     search: z.string().optional().default(""),
   }),
 
@@ -45,10 +53,10 @@ const groupGetValidation = (req, res, next) => {
   if (Object.keys(rawQuery).length > 0) {
     const queryResult = groupGetSchemas.query.safeParse(rawQuery);
     if (!queryResult.success) {
-      return res.status(400).json({
-        message: "쿼리 파라미터가 잘못됐습니다.",
-        error: queryResult.error.issues,
-      });
+      const issue = queryResult.error.issues[0];
+      const err = createError(400, issue.message);
+      err.path = issue.path[0];
+      return next(err);
     }
     req.validatedQuery = queryResult.data;
   }
@@ -56,10 +64,10 @@ const groupGetValidation = (req, res, next) => {
   if (Object.keys(rawParams).length > 0) {
     const paramsResult = groupGetSchemas.params.safeParse(rawParams);
     if (!paramsResult.success) {
-      return res.status(400).json({
-        message: "URL 파라미터가 잘못됐습니다.",
-        error: paramsResult.error.issues,
-      });
+      const issue = paramsResult.error.issues[0];
+      const err = createError(400, issue.message);
+      err.path = issue.path[0];
+      return next(err);
     }
     req.validatedParams = paramsResult.data;
   }

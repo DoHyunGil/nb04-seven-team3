@@ -376,6 +376,14 @@ class GroupsController {
   deleteGroupRecord = async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      //그룹존재여부 확인
+      const group = await prisma.group.findFirst({
+        where: { id }
+      });
+      if( !group ) {
+        return res.status(404).json({error: 'Group not found'});
+      };
+
       const result = await prisma.$transaction(async (tx) => {
         //1. 참가자삭제
         const participant = await tx.participant.deleteMany({

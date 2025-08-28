@@ -1,5 +1,6 @@
 import { PrismaClient, BadgeType } from "@prisma/client";
 import createError from "http-errors";
+import next from "next";
 
 const prisma = new PrismaClient();
 
@@ -303,7 +304,7 @@ class GroupsController {
       return res.status(201).json(resBody);
     } catch (error) {
       console.log(error);
-      res.status(400).json({ error: "그룹등록에 실패했습니다!" });
+      return next(createError(500, `서버 오류: ${error.message}`));
     }
   };
 
@@ -363,7 +364,7 @@ class GroupsController {
       res.status(200).send(group);
     } catch (error) {
       console.log(error);
-      res.status(400).json({ error: "그룹수정에 실패했습니다!" });
+      return next(createError(500, `서버 오류: ${error.message}`));
     }
   };
 
@@ -375,6 +376,14 @@ class GroupsController {
   deleteGroupRecord = async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      //그룹존재여부 확인
+      const group = await prisma.group.findFirst({
+        where: { id }
+      });
+      if( !group ) {
+        return res.status(404).json({error: 'Group not found'});
+      };
+
       const result = await prisma.$transaction(async (tx) => {
         //1. 참가자삭제
         const participant = await tx.participant.deleteMany({
@@ -388,7 +397,7 @@ class GroupsController {
       res.status(200).send({ message: "그룹삭제 되었습니다!" });
     } catch (error) {
       console.log(error);
-      res.status(400).json({ error: "그룹삭제에 실패했습니다!" });
+      return next(createError(500, `서버 오류: ${error.message}`));
     }
   };
 
@@ -465,7 +474,7 @@ class GroupsController {
       res.status(201).json(resBody);
     } catch (error) {
       console.log(error);
-      res.status(400).json({ error: "그룹참가 등록에 실패했습니다!" });
+      return next(createError(500, `서버 오류: ${error.message}`));
     }
   };
 
@@ -523,7 +532,7 @@ class GroupsController {
       res.status(200).json(resBody);
     } catch (error) {
       console.log(error);
-      res.status(400).json({ error: "그룹참가 취소에 실패했습니다!" });
+      return next(createError(500, `서버 오류: ${error.message}`));
     }
   };
 }

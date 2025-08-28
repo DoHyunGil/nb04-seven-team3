@@ -260,7 +260,7 @@ class RecordsController {
   }
 
 
-  createRecord = async (req, res) => {
+ createRecord = async (req, res) => {
     const groupIdNum = Number(req.params.groupId); // groupId 문자열 -> 숫자 변환
     const {
       exerciseType,
@@ -273,12 +273,9 @@ class RecordsController {
     } = req.body;
 
     // groupId 검증
-    if (!Number.isInteger(groupIdNum)) {
-      return res.status(400).json({
-        path: "groupId",
-        message: "groupId must be integer",
-      });
-    }
+    if (isNaN(groupIdNum)) {
+        return res.status(400).json({ error: "잘못된 groupId 값입니다." });
+      }
 
     // 필수 값 검증
     if (
@@ -307,18 +304,6 @@ class RecordsController {
   }
 
     try {
-      /*
-      // 그룹 존재 여부 확인
-      // select로 필요한 필드만 가져오기, 필요 없는 필드까지 가져오지 않도록 조건 추가
-      const group = await prisma.group.findFirst({
-        where: { id: groupIdNum },
-        select: { id: true, name: true },
-      });
-      if (!group) {
-        return res.status(404).json({ error: "그룹이 존재하지 않습니다." });
-      }
-        */
-      
       // 참여자 인증
       const participant = await prisma.participant.findFirst({
       where: {
@@ -337,36 +322,6 @@ class RecordsController {
       .status(401)
       .json({ error: "참여자가 존재하지 않거나 인증에 실패했습니다." });
     }
-      
-      //더미 데이터는 주석 처리했습니다. 
-      /*
-      // 더미 그룹 생성
-      const dummyGroup = await prisma.group.create({
-        data: {
-        name: "Test Group",
-        description: "Dummy group for testing",
-        photoUrl: "https://example.com/test.jpg",
-        goalRep: 10,
-        likeCount: 0,
-        badgeYn: false,
-        point: 0,
-        discordWebhookUrl: "https://example.com/webhook/test",
-        discordInviteUrl: "https://discord.gg/test",
-        nickname: "group_owner",
-        password: "1234",
-      },
-    })
-
-
-    // 더미 참여자 생성 
-    const dummyParticipant = await prisma.participant.create({
-      data: {
-      nickname: "test_user",
-      password: "1234",
-      group: { connect: { id: dummyGroup.id } },
-    },
-    });
-    */
       // 사진 배열 변환
       //const photosArray = Array.isArray(photos) ? photos : [];
 
@@ -380,8 +335,6 @@ class RecordsController {
           //photos: photosArray,
           groupId: groupIdNum,
           authorId: participant.id,
-          //groupId: dummyGroup.id,
-          //authorId: dummyParticipant.id,
         },
         include: { author: true },
       });

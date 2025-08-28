@@ -40,15 +40,7 @@ class GroupsController {
           _count: {
             select: { participant: true },
           },
-          tags: {
-            select: {
-              tag: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
+
           participant: {
             select: {
               id: true,
@@ -70,7 +62,7 @@ class GroupsController {
         discordWebhookUrl: groups.discordWebhookUrl,
         discordInviteUrl: groups.discordInviteUrl,
         likeCount: groups.likeCount,
-        tags: groups.tags.map((t) => t.tag.name),
+        tags: groups.tags,
         owner: {
           id: groups.id,
           nickname: groups.nickname,
@@ -102,15 +94,6 @@ class GroupsController {
       const data = await prisma.group.findUnique({
         where: { id: groupId },
         include: {
-          tags: {
-            select: {
-              tag: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
           participant: {
             select: {
               id: true,
@@ -179,7 +162,7 @@ class GroupsController {
         discordWebhookUrl: data.discordWebhookUrl,
         discordInviteUrl: data.discordInviteUrl,
         likeCount,
-        tags: data.tags.map((t) => t.tag.name),
+        tags: data.tags,
         owner: {
           id: data.id,
           nickname: data.nickname,
@@ -218,8 +201,6 @@ class GroupsController {
         photoUrl = "",
         goalRep,
         likeCount = 0,
-        badgeYn = false,
-        point = 0,
         discordWebhookUrl,
         discordInviteUrl,
         ownerNickname,
@@ -251,8 +232,6 @@ class GroupsController {
             photoUrl,
             goalRep,
             likeCount,
-            badgeYn,
-            point,
             discordWebhookUrl,
             discordInviteUrl,
             nickname: ownerNickname,
@@ -281,7 +260,7 @@ class GroupsController {
         discordWebhookUrl: results.group.discordWebhookUrl,
         discordInviteUrl: results.group.discordInviteUrl,
         likeCount: results.group.likeCount,
-        tags: [results.group.tags],
+        tags: results.group.tags,
         owner: {
           id: results.group.id,
           nickname: results.group.nickname,
@@ -321,8 +300,6 @@ class GroupsController {
         photoUrl = "",
         goalRep,
         likeCount = 0,
-        badgeYn = false,
-        point = 0,
         discordWebhookUrl,
         discordInviteUrl,
         ownerNickname,
@@ -352,8 +329,6 @@ class GroupsController {
           photoUrl,
           goalRep,
           likeCount,
-          badgeYn,
-          point,
           discordWebhookUrl,
           discordInviteUrl,
           nickname: ownerNickname,

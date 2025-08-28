@@ -37,15 +37,12 @@ model Group {
   photoUrl          String
   goalRep           Int
   likeCount         Int
-  badgeYn           Boolean
-  point             Int
   discordWebhookUrl String
   discordInviteUrl  String
   nickname          String
   password          String
   participant       Participant[]
-  ranks             Rank[]
-  tags              ActivityTag[]
+  tags              String[] @default([])
   records           Record[]
   badges            BadgeType[]   @default([])
   createdAt         DateTime      @default(now())
@@ -59,7 +56,6 @@ model Participant {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   record    Record[]
-  ranks     Rank[]
   groupId   Int
   group     Group    @relation(fields: [groupId], references: [id])
 }
@@ -77,33 +73,4 @@ model Record {
   author      Participant  @relation(fields: [authorId], references: [id])
   groupId     Int
   group       Group        @relation(fields: [groupId], references: [id])
-}
-
-model Tag {
-  id           Int           @id @default(autoincrement())
-  name         String        @unique
-  activityTags ActivityTag[]
-}
-
-model ActivityTag {
-  groupId Int
-  group   Group @relation(fields: [groupId], references: [id])
-  tagId   Int
-  tag     Tag   @relation(fields: [tagId], references: [id])
-
-  @@id([groupId, tagId])
-}
-
-model Rank {
-  id            Int          @id @default(autoincrement())
-  groupId       Int
-  group         Group        @relation(fields: [groupId], references: [id])
-  participantId Int
-  participant   Participant  @relation(fields: [participantId], references: [id])
-  recordCount   Int
-  recordTime    Int
-  duration      RankDuration
-  createdAt     DateTime     @default(now())
-
-  @@unique([groupId, participantId, duration])
 }

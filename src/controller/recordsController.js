@@ -67,7 +67,7 @@ class RecordsController {
       description,
       time,
       distance,
-      //photos,
+      photos,
       authorNickname,
       authorPassword,
     } = req.body;
@@ -122,8 +122,8 @@ class RecordsController {
       .status(401)
       .json({ error: "참여자가 존재하지 않거나 인증에 실패했습니다." });
     }
-      // 사진 배열 변환
-      //const photosArray = Array.isArray(photos) ? photos : [];
+      // 응답 데이터 변환
+      const photosArray = Array.isArray(photos) ? photos : [];
 
       // Record 생성
       const newRecord = await prisma.record.create({
@@ -132,15 +132,12 @@ class RecordsController {
           description,
           duration: time,
           distance,
-          //photos: photosArray,
+          photos: photosArray,
           groupId: groupIdNum,
           authorId: participant.id,
         },
         include: { author: true },
       });
-
-      // 응답 데이터 변환
-      //const photoUrls = newRecord.photos.flatMap((p) => p.photos);
 
       return res.status(201).json({
         id: newRecord.id,
@@ -148,8 +145,7 @@ class RecordsController {
         description: newRecord.description,
         time: newRecord.duration,
         distance: newRecord.distance,
-        photos: [],
-        //photos: newRecord.photos,  << DB에 저장된 string[], 교체 예정.
+        photos: newRecord.photos,
         author: {
           id: newRecord.author.id,
           nickname: newRecord.author.nickname,
@@ -163,3 +159,4 @@ class RecordsController {
 }
 
 export default new RecordsController();
+

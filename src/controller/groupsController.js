@@ -1,6 +1,5 @@
 import { PrismaClient, BadgeType } from "@prisma/client";
 import createError from "http-errors";
-import next from "next";
 
 const prisma = new PrismaClient();
 
@@ -192,7 +191,7 @@ class GroupsController {
    *  API명 : 그룹 등록
    *  @param : {*} RequestBody
    */
-  createGroupRecord = async (req, res) => {
+  createGroupRecord = async (req, res, next) => {
     const resultBody = {};
 
     try {
@@ -292,7 +291,7 @@ class GroupsController {
    *  API명 : 그룹 수정
    *  @param : {*} RequestBody
    */
-  updateGroupRecord = async (req, res) => {
+  updateGroupRecord = async (req, res, next) => {
     try {
       const id = parseInt(req.params.id);
       const {
@@ -348,16 +347,16 @@ class GroupsController {
    *  API명 : 그룹 삭제
    *  @param : {*} RequestBody
    */
-  deleteGroupRecord = async (req, res) => {
+  deleteGroupRecord = async (req, res, next) => {
     try {
       const id = parseInt(req.params.id);
       //그룹존재여부 확인
       const group = await prisma.group.findFirst({
-        where: { id }
+        where: { id },
       });
-      if( !group ) {
-        return res.status(404).json({error: 'Group not found'});
-      };
+      if (!group) {
+        return res.status(404).json({ error: "Group not found" });
+      }
 
       const result = await prisma.$transaction(async (tx) => {
         //1. 참가자삭제
@@ -382,7 +381,7 @@ class GroupsController {
    * @param {*} password
    * @param {*} groupId(FK)
    */
-  addGroupParticipant = async (req, res) => {
+  addGroupParticipant = async (req, res, next) => {
     try {
       const reqGroupId = parseInt(req.params.groupId);
       const { nickname, password } = req.body;
@@ -457,7 +456,7 @@ class GroupsController {
    * 그룹참가취소
    * @param {*} groupId
    */
-  deletelGroupParticipant = async (req, res) => {
+  deletelGroupParticipant = async (req, res, next) => {
     try {
       const groupId = parseInt(req.params.groupId);
       console.log(

@@ -1,5 +1,6 @@
 import { PrismaClient, ActivityType } from "@prisma/client";
 import createError from "http-errors";
+import sendDiscordMessage from "../middlewares/sendDiscordmessage.js";
 
 const prisma = new PrismaClient();
 
@@ -74,8 +75,8 @@ class RecordsController {
 
     // groupId 검증
     if (isNaN(groupIdNum)) {
-        return res.status(400).json({ error: "잘못된 groupId 값입니다." });
-      }
+      return res.status(400).json({ error: "잘못된 groupId 값입니다." });
+    }
 
     // 필수 값 검증
     if (
@@ -104,24 +105,34 @@ class RecordsController {
     }
 
     try {
+      //그룹 인증
+      const group = await prisma.group.findUnique({
+        where: {
+          id: groupIdNum,
+        },
+        select: {
+          discordWebhookUrl: true,
+        },
+      });
+
       // 참여자 인증
       const participant = await prisma.participant.findFirst({
-      where: {
-        nickname: authorNickname,
-        groupId: groupIdNum, 
-      },
-      select: {
-        id: true,
-        nickname: true,
-        password: true,
-      },
-    });
+        where: {
+          nickname: authorNickname,
+          groupId: groupIdNum,
+        },
+        select: {
+          id: true,
+          nickname: true,
+          password: true,
+        },
+      });
 
-    if (!participant || participant.password !== authorPassword) {
-    return res
-      .status(401)
-      .json({ error: "참여자가 존재하지 않거나 인증에 실패했습니다." });
-    }
+      if (!participant || participant.password !== authorPassword) {
+        return res
+          .status(401)
+          .json({ error: "참여자가 존재하지 않거나 인증에 실패했습니다." });
+      }
       // 응답 데이터 변환
       const photosArray = Array.isArray(photos) ? photos : [];
 
@@ -138,6 +149,11 @@ class RecordsController {
         },
         include: { author: true },
       });
+
+      sendDiscordMessage(
+        group.discordWebhookUrl,
+        "새로운 알림이 등록되었습니다."
+      );
 
       return res.status(201).json({
         id: newRecord.id,
@@ -159,4 +175,3 @@ class RecordsController {
 }
 
 export default new RecordsController();
-

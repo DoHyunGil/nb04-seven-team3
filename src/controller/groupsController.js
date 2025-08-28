@@ -1,6 +1,5 @@
 import { PrismaClient, BadgeType } from "@prisma/client";
 import createError from "http-errors";
-import next from "next";
 
 const prisma = new PrismaClient();
 
@@ -41,15 +40,7 @@ class GroupsController {
           _count: {
             select: { participant: true },
           },
-          tags: {
-            select: {
-              tag: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
+
           participant: {
             select: {
               id: true,
@@ -71,7 +62,7 @@ class GroupsController {
         discordWebhookUrl: groups.discordWebhookUrl,
         discordInviteUrl: groups.discordInviteUrl,
         likeCount: groups.likeCount,
-        tags: groups.tags.map((t) => t.tag.name),
+        tags: groups.tags,
         owner: {
           id: groups.id,
           nickname: groups.nickname,
@@ -103,15 +94,6 @@ class GroupsController {
       const data = await prisma.group.findUnique({
         where: { id: groupId },
         include: {
-          tags: {
-            select: {
-              tag: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
           participant: {
             select: {
               id: true,
@@ -180,7 +162,7 @@ class GroupsController {
         discordWebhookUrl: data.discordWebhookUrl,
         discordInviteUrl: data.discordInviteUrl,
         likeCount,
-        tags: data.tags.map((t) => t.tag.name),
+        tags: data.tags,
         owner: {
           id: data.id,
           nickname: data.nickname,
@@ -209,7 +191,7 @@ class GroupsController {
    *  API명 : 그룹 등록
    *  @param : {*} RequestBody
    */
-  createGroupRecord = async (req, res) => {
+  createGroupRecord = async (req, res, next) => {
     const resultBody = {};
 
     try {
@@ -219,8 +201,6 @@ class GroupsController {
         photoUrl = "",
         goalRep,
         likeCount = 0,
-        badgeYn = false,
-        point = 0,
         discordWebhookUrl,
         discordInviteUrl,
         ownerNickname,
@@ -252,8 +232,6 @@ class GroupsController {
             photoUrl,
             goalRep,
             likeCount,
-            badgeYn,
-            point,
             discordWebhookUrl,
             discordInviteUrl,
             nickname: ownerNickname,
@@ -282,7 +260,7 @@ class GroupsController {
         discordWebhookUrl: results.group.discordWebhookUrl,
         discordInviteUrl: results.group.discordInviteUrl,
         likeCount: results.group.likeCount,
-        tags: [results.group.tags],
+        tags: results.group.tags,
         owner: {
           id: results.group.id,
           nickname: results.group.nickname,
@@ -313,7 +291,7 @@ class GroupsController {
    *  API명 : 그룹 수정
    *  @param : {*} RequestBody
    */
-  updateGroupRecord = async (req, res) => {
+  updateGroupRecord = async (req, res, next) => {
     try {
       const id = parseInt(req.params.id);
       const {
@@ -322,8 +300,6 @@ class GroupsController {
         photoUrl = "",
         goalRep,
         likeCount = 0,
-        badgeYn = false,
-        point = 0,
         discordWebhookUrl,
         discordInviteUrl,
         ownerNickname,
@@ -353,8 +329,6 @@ class GroupsController {
           photoUrl,
           goalRep,
           likeCount,
-          badgeYn,
-          point,
           discordWebhookUrl,
           discordInviteUrl,
           nickname: ownerNickname,
@@ -373,16 +347,16 @@ class GroupsController {
    *  API명 : 그룹 삭제
    *  @param : {*} RequestBody
    */
-  deleteGroupRecord = async (req, res) => {
+  deleteGroupRecord = async (req, res, next) => {
     try {
       const id = parseInt(req.params.id);
       //그룹존재여부 확인
       const group = await prisma.group.findFirst({
-        where: { id }
+        where: { id },
       });
-      if( !group ) {
-        return res.status(404).json({error: 'Group not found'});
-      };
+      if (!group) {
+        return res.status(404).json({ error: "Group not found" });
+      }
 
       const result = await prisma.$transaction(async (tx) => {
         //1. 참가자삭제
@@ -407,7 +381,7 @@ class GroupsController {
    * @param {*} password
    * @param {*} groupId(FK)
    */
-  addGroupParticipant = async (req, res) => {
+  addGroupParticipant = async (req, res, next) => {
     try {
       const reqGroupId = parseInt(req.params.groupId);
       const { nickname, password } = req.body;
@@ -482,7 +456,7 @@ class GroupsController {
    * 그룹참가취소
    * @param {*} groupId
    */
-  deletelGroupParticipant = async (req, res) => {
+  deletelGroupParticipant = async (req, res, next) => {
     try {
       const groupId = parseInt(req.params.groupId);
       console.log(

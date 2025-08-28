@@ -12,7 +12,9 @@ const router = express.Router();
 //records 라우팅
 router.use("/:groupId/records", recordsRouter);
 
+//rank 라우팅
 router.use("/:groupId/rank", rankRouter);
+
 //likes 라우팅
 router.use("/:groupId/likes", likesRouter);
 

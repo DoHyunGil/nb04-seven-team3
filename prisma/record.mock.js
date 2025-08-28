@@ -1,0 +1,30 @@
+export const RECORDS = [
+  {
+    groupName : "50KM 챌린지",
+    type: "RUN", 
+    description: "아침에 2km 조깅",
+    photo: "www.running100Photo.co.kr",
+    authorId: 1, 
+    password: "1234",
+    distance: 2,
+    duration: 60,
+    groupId: 1,
+    participantsId: [1, 2],
+    createdAt: "2025-08-21T09:30:00Z",
+    updatedAt: "2025-08-21T09:30:00Z",
+  },
+  {
+    groupName: "100KM 달성 챌린지",
+    type: "SWIM", 
+    description: "1K 배영",
+    photo: ".",
+    authorId: 2,
+    password: "12345",
+    distance: 10,
+    duration: 60,
+    groupId: 2,
+    participantsId: [3, 4],
+    createdAt: "2025-08-21T09:30:00Z",
+    updatedAt: "2025-08-21T09:30:00Z",
+  }
+];

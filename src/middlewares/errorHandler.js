@@ -2,11 +2,6 @@ import { Prisma } from "@prisma/client";
 import httpError from "http-errors";
 
 export default function errorHandler(err, req, res, next) {
-  if (!httpError.isHttpError(err)) {
-    console.error("예외적 에러 발생입니다. 에러를 패키지화 해주세요 : " + err);
-    return res.status(500).send("에러");
-  }
-
   console.error("에러 : " + err);
 
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
@@ -15,8 +10,13 @@ export default function errorHandler(err, req, res, next) {
     }
   }
 
-  const status = Number(err.status);
-  const message = err.message;
+  if (httpError.isHttpError(err)) {
+    const status = Number(err.statusCode);
+    const message = err.message;
 
-  res.status(status).send(`에러 메시지 : ${message}`);
+    return res.status(status).json({ message });
+  }
+
+  console.error("예기치 못한 에러 발생 : " + err);
+  return res.status(500).json({ message: "서버 내부 오류 발생" });
 }

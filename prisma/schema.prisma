@@ -57,7 +57,7 @@ model Participant {
   updatedAt DateTime @updatedAt
   record    Record[]
   groupId   Int
-  group     Group    @relation(fields: [groupId], references: [id])
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
 }
 
 model Record {
@@ -70,7 +70,7 @@ model Record {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   authorId    Int
-  author      Participant  @relation(fields: [authorId], references: [id])
+  author      Participant  @relation(fields: [authorId], references: [id], onDelete: Cascade)
   groupId     Int
-  group       Group        @relation(fields: [groupId], references: [id])
+  group       Group        @relation(fields: [groupId], references: [id], onDelete: Cascade)
 }

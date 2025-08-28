@@ -19,7 +19,6 @@ const nextConfig: NextConfig = {
       {
         protocol: "http",
         hostname: "localhost",
-        port: "3001",
       },
       {
         protocol: "https",
@@ -31,8 +30,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "http",
-        hostname: "localhost",
-        port: "4000",
+        hostname: "nb04-seven-team3-backend.onrender.com",
+      },
+      {
+        protocol: "http",
+        hostname: "nb04-seven-team3-frontend.onrender.com",
       },
     ],
   },

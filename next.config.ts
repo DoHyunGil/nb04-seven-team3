@@ -35,6 +35,7 @@ const nextConfig: NextConfig = {
       {
         protocol: "http",
         hostname: "nb04-seven-team3-frontend.onrender.com",
+
       },
     ],
   },

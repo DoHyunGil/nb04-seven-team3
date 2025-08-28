@@ -4,15 +4,16 @@ import groupRouters from "./src/routes/groups.js";
 import imageRouter from "./src/routes/images.js";
 import path from "path";
 import tagsRouters from "./src/routes/tags.js";
-import likesRouter from "./src/routes/likes.js";
 import errorHandler from "./src/middlewares/errorHandler.js";
+import * as dotenv from "dotenv";
 
 const app = express();
+dotenv.config();
 const PORT = process.env.PORT || 4000;
 
 app.use(
   cors({
-    origin: "http://localhost:3000", // 프론트 서버 주소
+    origin: process.env.FRONTEND_URL || "http://localhost:3000", // 프론트 서버 주소
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true,
   })

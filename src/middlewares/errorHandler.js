@@ -14,6 +14,17 @@ export default function errorHandler(err, req, res, next) {
     const status = Number(err.statusCode);
     const message = err.message;
 
+    // message가 객체 타입이면, 그대로 JSON 응답으로 반환
+    if (typeof message === "object") {
+      return res.status(status).json(message);
+    }
+
+    // err 객체에 path 프로퍼티가 있으면, 응답에 path와 message를 함께 반환하기 위해 처리
+    if (err.path) {
+      return res.status(status).json({ path: err.path, message });
+    }
+
+    // message가 문자열일 경우, message 프로퍼티로 감싸서 JSON 응답 반환
     return res.status(status).json({ message });
   }
 

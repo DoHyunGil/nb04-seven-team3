@@ -14,7 +14,7 @@ router.use("/:groupId/records", recordsRouter);
 
 router.use("/:groupId/rank", rankRouter);
 //likes 라우팅
-router.use(":groupId/likes", likesRouter);
+router.use("/:groupId/likes", likesRouter);
 
 //Group 생성
 router.post("/", GroupsController.createGroupRecord);

@@ -7,11 +7,11 @@
     "seed": "node prisma/seed.js"
   },
   "scripts": {
-    "dev": "concurrently \"npm run dev:next\" \"npm run dev:node\"",
+    "dev": "node scripts/start.js",
     "dev:next": "next dev --turbopack",
     "dev:node": "node server.js",
-    "build": "next build",
-    "start": "next start",
+    "build": "node scripts/build.js",
+    "start": "node scripts/start.js",
     "lint": "next lint",
     "seed": "prisma db seed"
   },
@@ -20,6 +20,7 @@
     "axios": "1.7.9",
     "classnames": "2.5.1",
     "cors": "2.8.5",
+    "dotenv": "^17.2.1",
     "express": "5.1.0",
     "http-errors": "^2.0.0",
     "lodash": "4.17.21",
